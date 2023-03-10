@@ -1,0 +1,86 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.30'
+}
+
+group 'me.vadim'
+version '1.0.0'
+
+def name = project.name + '.jar'
+def main = group + '.ja.Main'
+def jver = '11'
+
+project.buildDir project.projectDir.path + '/target'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url 'https://oss.sonatype.org/content/repositories/central' }
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'org.jsoup:jsoup:1.15.3'
+    implementation 'com.github.mslxl:KtSwing:2.1.2'
+    implementation 'com.formdev:flatlaf:3.0'
+    implementation 'com.formdev:flatlaf-intellij-themes:3.0'
+    implementation 'com.miglayout:miglayout-swing:4.2'
+    implementation 'org.imgscalr:imgscalr-lib:4.2'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.5.30'
+    implementation 'org.apache.pdfbox:pdfbox:2.0.27'
+}
+
+//generate `version` file to add to jar
+
+ext.genOutputDir = file("$buildDir/generated-resources")
+
+tasks.register('generatePropInfo') {
+    ext.outputFile = file("$genOutputDir/version")
+    outputs.file(outputFile)
+    doLast {
+        outputFile.text = project.version
+    }
+}
+
+sourceSets.main.output.dir genOutputDir, builtBy: generatePropInfo
+
+shadowJar {
+    archiveFileName.set("ui.jar")
+    destinationDirectory.set(project.buildDir)
+    mergeServiceFiles()
+//    minimize()
+    manifest {
+        attributes('Main-Class': main)
+    }
+}
+
+build {
+    dependsOn(shadowJar)
+}
+
+compileJava {
+    targetCompatibility = jver
+    sourceCompatibility = jver
+}
+
+compileKotlin {
+    targetCompatibility jver
+    sourceCompatibility jver
+
+    kotlinOptions {
+        jvmTarget = jver
+        freeCompilerArgs = ['-Xjvm-default=all', '-Xopt-in=kotlin.RequiresOptIn']
+    }
+}
+
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    destinationDirectory.set(project.buildDir)
+    archiveFileName.set(project.name + '-' + project.version + '-unshaded.jar')
+}

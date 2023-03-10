@@ -17,4 +17,9 @@ public class Curriculum extends IdAdapter {
 		this.name = name;
 	}
 
+	@Override
+	public String toString() {
+		return name;
+	}
+
 }

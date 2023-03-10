@@ -101,15 +101,16 @@ public enum KCIcon {
 	}
 
 	private static BufferedImage loadImageResource(String name, boolean invert) {
-		if(name == null) return null;
-		URL resource = KCIcon.class.getClassLoader().getResource(name);
+		if (name == null) return null;
+		name = "img/" + name; // subfolder
+		URL           resource = KCIcon.class.getClassLoader().getResource(name);
 		BufferedImage image;
 		try {
 			image = resource == null ? null : ImageIO.read(resource);
-		} catch (IOException ignored){
+		} catch (IOException ignored) {
 			return null;
 		}
-		if(image == null)
+		if (image == null)
 			return null;
 		return invert ? invert(image) : image;
 	}

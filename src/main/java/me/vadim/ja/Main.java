@@ -9,9 +9,11 @@ import me.vadim.ja.kc.KanjiCardUI;
 public final class Main {
 
 	public static void main(String[] args) throws Exception {
+		System.out.println("Loading FlatLaf...");
 		System.setProperty("flatlaf.useWindowDecorations", "true");
 		System.setProperty("flatlaf.menuBarEmbedded", "true");
 		FlatOneDarkIJTheme.setup();
+		System.out.println("Entering application.");
 		Application app = new KanjiCardUI();
 		app.mainWindow();
 	}

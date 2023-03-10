@@ -19,7 +19,7 @@ public final class KCTheme {
 	static {
 		Font custom;
 		try {
-			InputStream resource = KCTheme.class.getClassLoader().getResourceAsStream("SawarabiMincho Regular 400.ttf");
+			InputStream resource = KCTheme.class.getClassLoader().getResourceAsStream("font/SawarabiMincho Regular 400.ttf");
 			custom = Font.createFont(Font.TRUETYPE_FONT, resource);
 		} catch (Exception e){
 			System.err.println("WARN: Unable to load custom font. Defaulting to system font.");

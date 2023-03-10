@@ -5,9 +5,15 @@ import io.github.mslxl.ktswing.component.*
 import io.github.mslxl.ktswing.group.SwingComponentBuilderScope
 import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.*
+import me.vadim.ja.kc.wrapper.Curriculum
+import me.vadim.ja.kc.wrapper.CurriculumManager
+import me.vadim.ja.kc.wrapper.Group
+import me.vadim.ja.kc.wrapper.PartOfSpeech
 import me.vadim.ja.kc.wrapper.PronounciationType
+import me.vadim.ja.swing.SortedComboBoxModel
 import me.vadim.ja.swing.TransferFocus
 import java.awt.*
+import java.util.*
 import java.util.function.Consumer
 import javax.swing.*
 import javax.swing.border.TitledBorder
@@ -41,20 +47,24 @@ object KCUI {
 		}
 	}
 
-	//override textArea dsl method to apply TransferFocus patch automatically
+	fun JTextField.removeWhitespace() {
+		text = text.replace(Regex("\\s+"), "")
+	}
+
+	//override textField dsl method to apply TransferFocus patch automatically
 	@OptIn(ExperimentalContracts::class)
-	fun CanAddChildrenScope<*>.textArea(
+	inline fun CanAddChildrenScope<*>.textField(
 		doc: Document? = null,
 		text: String? = null,
-		row: Int = 0,
 		column: Int = 0,
-		block: BasicScope<JTextArea>.() -> Unit
-									   ): JTextArea {
+		block: BasicScope<JTextField>.() -> Unit
+											   ): JTextField {
 		contract {
 			callsInPlace(block, InvocationKind.EXACTLY_ONCE)
 		}
-		return applyComponent(JTextArea(doc, text, row, column).also { TransferFocus.patch(it) }, block)
+		return applyContainer(JTextField(doc, text, column).also { TransferFocus.patch(it) }, block)
 	}
+
 
 	//erases tooltip text
 	@JvmStatic
@@ -133,8 +143,6 @@ object KCUI {
 		}
 	}
 
-	private lateinit var pronounciations: JPanel
-	private lateinit var definitions: JPanel
 
 	private fun SwingComponentBuilderScope<Component>.splitPreview(name: String, scope: CanSetLayoutScope<JPanel>.() -> Unit) {
 		panel {
@@ -193,14 +201,14 @@ object KCUI {
 		}
 	}
 
-	private fun GridBagLayoutRootScope<*>.inputList(
+	//todo: add scroll wheel if theres too many
+	private fun GridBagLayoutRootScope<*>.resizableInputList(
 		frame: JFrame,
 		label: String,
 		property: KMutableProperty<JPanel>,
-		textAreaWidth: Int,
-		afterTextArea: CanAddChildrenScope<*>.() -> Unit,
+		eachRow: CanAddChildrenScope<*>.() -> Unit,
 		scope: GridBagLayoutCellScope<*>.() -> Unit
-												   ) {
+															) {
 		property.apply {
 			isAccessible = true
 		}
@@ -209,19 +217,13 @@ object KCUI {
 			list.add(swing<JPanel> {
 				panel {
 					flowLayout(FlowLayout.LEFT) {
-						textArea {
-							attr {
-								columns = textAreaWidth
-								font = KCTheme.JP_FONT
-							}
-						}
-						afterTextArea()
+						eachRow()
 					}
 				}
 			}, GridBagConstraints().apply {
 				gridx = 0
 				gridy = list.componentCount
-//				weightx = 1.0
+				weightx = 1.0
 				weighty = 1.0
 				fill = GridBagConstraints.NONE
 				anchor = GridBagConstraints.NORTHWEST
@@ -248,45 +250,22 @@ object KCUI {
 				}
 			}
 			panel {
-				fun GridBagLayoutRootScope<*>.elem(x: Int, scope: GridBagLayoutCellScope<*>.() -> Unit) {
-					cell {
+				flowLayout(FlowLayout.LEFT) {
+					label(label) {
 						attr {
-							cons {
-								gridx = x
-								gridy = 0
-								if (x == 0) weightx = 1.0 //todo: +/- buttons not behaving properly: implement MiGLayout into DSL?
-								weighty = 1.0
-								fill = GridBagConstraints.HORIZONTAL
-								anchor = GridBagConstraints.WEST
-								insets.apply { // 5 is default for FlowLayout (what the other rows use)
-									left = 5
-								}
-							}
-						}
-						scope()
-					}
-				}
-				gridBagLayout {
-					elem(0) {
-						label(label) {
-							attr {
-								maximumSize = preferredSize
-							}
+							maximumSize = preferredSize
 						}
 					}
-
-					elem(1) {
-						panel {
-							flowLayout(FlowLayout.LEFT, 0) {
-								button(KCTheme.getButtonIcon(KCIcon.ADD.primary)) {
-									onAction {
-										createLine()
-									}
+					panel {
+						flowLayout(FlowLayout.LEFT, 0) {
+							button(KCTheme.getButtonIcon(KCIcon.ADD.primary)) {
+								onAction {
+									createLine()
 								}
-								button(KCTheme.getButtonIcon(KCIcon.REMOVE.primary)) {
-									onAction {
-										deleteLine()
-									}
+							}
+							button(KCTheme.getButtonIcon(KCIcon.REMOVE.primary)) {
+								onAction {
+									deleteLine()
 								}
 							}
 						}
@@ -311,11 +290,19 @@ object KCUI {
 		}
 	}
 
+	private lateinit var kanjiArea: JTextField
+	private lateinit var curriculumSelector: JComboBox<Curriculum>
+	private lateinit var groupSelector: JComboBox<Group>
+
+	private lateinit var pronounciations: JPanel
+	private lateinit var grammar: JPanel
+	private lateinit var definitions: JPanel
 	private lateinit var strokeOrder: JCheckBox
 	private lateinit var strokePanel: JPanel
 	private lateinit var orientation: ButtonGroup
 	private lateinit var wrapAfter: JSpinner
 
+	@Suppress("UNCHECKED_CAST")
 	private fun TabbedPaneScope.editTab(frame: JFrame) {
 		tab("Edit") {
 			splitPreview("Flashcard Editor") {
@@ -340,10 +327,11 @@ object KCUI {
 					row(0) {
 						panel {
 							flowLayout(FlowLayout.LEFT) {
+								val genki = CurriculumManager.cringe.genki()
 								label("Curriculum")
-								comboBox(listOf("Genki")) {}
+								curriculumSelector = comboBox(listOf(genki)) {}
 								label("Group")
-								comboBox(listOf("Lesson X")) {}
+								groupSelector = comboBox(genki.groups.toList()) {}
 							}
 						}
 					}
@@ -352,7 +340,7 @@ object KCUI {
 						panel {
 							flowLayout(FlowLayout.LEFT) {
 								label("Kanji")
-								textArea {
+								kanjiArea = textField {
 									attr {
 										font = KCTheme.JP_FONT
 									}
@@ -364,8 +352,15 @@ object KCUI {
 					row(2) {
 						panel {
 							gridBagLayout {
-								inputList(frame, "Pronounciations", KCUI::pronounciations, 10, {
-									comboBox(enumValues<PronounciationType>().toList()) {}
+								resizableInputList(frame, "Pronounciations", KCUI::pronounciations, {
+									textField {
+										attr {
+											columns = 10
+											font = KCTheme.JP_FONT
+										}
+									}
+									comboBox(enumValues<PronounciationType>().toList()) {
+									}
 								}) {
 									pronounciations = panel {
 										gridBagLayout {}
@@ -378,8 +373,27 @@ object KCUI {
 					row(3) {
 						panel {
 							gridBagLayout {
-								inputList(frame, "Definitions", KCUI::definitions, 25, {}) {
-									definitions = panel {
+								resizableInputList(frame, "Grammar", KCUI::grammar, {
+									val info = comboBox<PartOfSpeech.Info>(emptyList()) {
+										attr {
+											isEnabled = false
+										}
+									}
+									comboBox<PartOfSpeech>(
+										SortedComboBoxModel(CurriculumManager.cringe.partsOfSpeechDistinct().toTypedArray(),
+															Comparator.comparingInt<PartOfSpeech> { it.priority }))
+									{
+										self.addItemListener {
+											val pos = it.item as PartOfSpeech
+											info.removeAllItems()
+											for (i in CurriculumManager.cringe.availableInfos(pos))
+												info.addItem(i)
+											info.isEnabled = info.itemCount > 0
+											frame.revalidate()
+										}
+									}
+								}) {
+									grammar = panel {
 										gridBagLayout {}
 									}
 								}
@@ -388,6 +402,64 @@ object KCUI {
 					}
 
 					row(4) {
+						panel {
+							gridBagLayout {
+								resizableInputList(frame, "Definitions", KCUI::definitions, {
+									textField {
+										attr {
+											columns = 25
+											font = KCTheme.JP_FONT
+										}
+									}
+								}) {
+									definitions = panel {
+										gridBagLayout {}
+									}
+								}
+							}
+						}
+					}
+
+					row(5) {
+						button("Apply") {
+							onAction {
+								kanjiArea.removeWhitespace()
+								val k = CurriculumManager.cringe.createKanji(kanjiArea.text, groupSelector.selectedItem as Group)
+								//pronounciations
+								for (elem in pronounciations.components) {
+									elem as JPanel
+
+									val input = elem.components.filterIsInstance<JTextField>().first().apply { removeWhitespace() }
+									val type = elem.components.filterIsInstance<JComboBox<PronounciationType>>().first()
+
+									k.addPronounciation(type.selectedItem as PronounciationType, input.text)
+								}
+								//grammar
+								val pos = mutableListOf<PartOfSpeech>()
+								for (elem in grammar.components) {
+									elem as JPanel
+
+									val info = elem.components[0]!! as JComboBox<PartOfSpeech.Info>
+									val type = elem.components[1]!! as JComboBox<PartOfSpeech>
+
+									pos += (info.selectedItem as PartOfSpeech.Info?)?.partOfSpeech ?: (type.selectedItem as PartOfSpeech)
+								}
+								pos.distinctBy { it.name }.sortedBy { it.priority }.forEach { k.addPartOfSpeech(it) }
+								//definitions
+								for (elem in definitions.components) {
+									elem as JPanel
+
+									val input = elem.components.first() as JTextField
+									k.addDefinition(input.apply { removeWhitespace() }.text)
+								}
+
+								frame.revalidate()
+								CurriculumManager.cringe.submit(k)
+							}
+						}
+					}
+
+					row(6) {
 						panel {
 							gridBagLayout {
 								cell {

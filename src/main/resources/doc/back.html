@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+	<link rel="stylesheet" href="css/printing.css">
+	<style type="text/css">
+	li{
+		margin-left: -2em;
+	}
+	ul {
+		margin-left: 0;
+	}
+
+	/** back side **/
+	.container {
+		flex-wrap: wrap;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        width: 100vw;
+        height: 100vh;
+	}
+
+	/* diagram */
+	.margin {
+		position: relative;
+		top: -18px;
+		margin-bottom: -18px;
+	}
+	.imgbox {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100vw;
+		height: 100%;
+	}
+	.stroke-center {
+/*		width: 200px;*/
+		height: 300px;
+		margin-left: -1px;
+	}
+
+
+	/* info */
+	.info {
+/*		width: 100%;*/
+		gap: 1em;
+/*		top: -12em;*/
+		position: relative;
+		display: flex;
+		justify-content: center;
+		align-items: flex-start;
+		align-content: center;
+	}
+	#left {
+		flex: 1;
+/*		padding-left: 5%;*/
+		text-align: left;
+	}
+	#right {
+		flex: 5;
+/*		width: 200px;*/
+		text-align: left;
+	}
+	.box {
+		display: flex;
+		align-items: flex-start;
+		justify-content: flex-start;
+		font-size: 16px;
+	}
+	.box > div {
+/*		padding-top: 1em;*/
+	}
+	div.box div:nth-child(3n) { /*wrap every 3rd child*/
+		flex-basis: 100%;
+	}
+	.pron {
+		font-family: Noto Sans JP;
+		font-size: inherit;
+	}
+	.psym {
+		font-family: Gadugi;
+		font-size: inherit;
+	}
+	.pos {
+		font-size: 20px;
+		font-family: Calibri;
+	}
+	.def {
+		font-size: 12px;
+		font-family: Calibri;
+	}
+	</style>
+</head>
+<body>
+	<div class="watermark">intended to print on&nbsp;4×6 notecards</div>
+	<div id="back" class="printable container">
+		<div class="margin">
+			<div class="imgbox" id="diagrams">
+				<img src="images/04eca.png" class="stroke-center" alt="Stroke Diagram">
+				<img src="images/06669.png" class="stroke-center" alt="Stroke Diagram">
+				<img src="images/04eca.png" class="stroke-center" alt="Stroke Diagram">
+			</div>
+		</div>
+		<div class="info">
+			<div id="left" class="vertical box">
+				<div> <!-- dude what the fuck, why can't flexbox just be sane -->
+<!--					<div><span class="psym" id="symbol">⛛</span><span id="pronounciation" class="pron">こんばん</span></div>-->
+				</div>
+				<div id="pronounciation">
+					<div><span class="psym">⛛</span><span class="pron">こんばん</span></div>
+					<div><span class="psym">⛛</span><span class="pron">べんきょうする</span></div>
+					<div><span class="psym">⛛</span><span class="pron">こんばん</span></div>
+				</div>
+			</div>
+			<div id="right">
+				<span id="type" class="pos">noun, adverb</span>
+				<ul class="def" id="definition">
+					<li>a very long definition; with; multiple; options</li>
+					<li>and lines; and this is more text; and what if</li>
+					<li>and more text; and i don't think i will</li>
+					<li>ever have more than 4 lines in a definition...</li>
+					<li>but for posterity let;s see how</li>
+					<li>many we can do :)</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
