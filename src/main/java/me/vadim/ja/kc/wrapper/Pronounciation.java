@@ -1,0 +1,56 @@
+package me.vadim.ja.kc.wrapper;
+
+/**
+ * @author vadim
+ */
+public class Pronounciation {
+	public final String             value;
+	public final PronounciationType type;
+	public final int                index;
+
+	Pronounciation(PronounciationType type, String value, int index) {
+		this.value = value;
+		this.type  = type;
+		this.index = index;
+	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	public Builder copy() {
+		return builder().value(value).index(index);
+	}
+
+	public static final class Builder {
+		private String             value;
+		private PronounciationType type;
+		private int                index;
+
+		private Builder() {}
+
+		public Builder value(String value) {
+			this.value = value;
+			return this;
+		}
+
+		public Builder type(PronounciationType type) {
+			this.type = type;
+			return this;
+		}
+
+		public Builder index(int index) {
+			this.index = index;
+			return this;
+		}
+
+		public Pronounciation build() {
+			if (value == null)
+				throw new NullPointerException("value");
+			if (type == null)
+				throw new NullPointerException("type");
+
+			return new Pronounciation(type, value, index);
+		}
+	}
+}

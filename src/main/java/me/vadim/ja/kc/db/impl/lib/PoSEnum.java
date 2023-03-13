@@ -1,0 +1,115 @@
+package me.vadim.ja.kc.db.impl.lib;
+
+import me.vadim.ja.kc.db.impl.DbEnumAdapter;
+import me.vadim.ja.kc.wrapper.PartOfSpeech;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/**
+ * @author vadim
+ */
+class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
+
+	private static PartOfSpeech buildPartOfSpeech(ResultSet result, long id) throws SQLException {
+		String name = result.getString(1);
+		String info = result.getString(2);
+		int    prio = result.getInt(3);
+
+		return PartOfSpeech.builder()
+						   .name(name).info(info).priority(prio).id(id)
+						   .build();
+	}
+
+	PoSEnum() {
+		super(PartOfSpeech[]::new);
+	}
+
+	@Override
+	protected void createTables() throws SQLException {
+		connection.prepareStatement("create table if not exists GRAMMAR(p_id INTEGER PRIMARY KEY, name TEXT, info TEXT, priority INT)").execute();
+	}
+
+	@Override
+	protected void implDelete(long id) throws SQLException {
+		PreparedStatement statement = connection.prepareStatement("delete from GRAMMAR where p_id=?");
+		statement.setLong(1, id);
+		statement.execute();
+	}
+
+	@Override
+	protected void implInsert(PartOfSpeech obj) throws SQLException {
+		PreparedStatement statement = connection.prepareStatement("insert into GRAMMAR (name, info, priority) VALUES (?, ?, ?)");
+
+		statement.setString(1, obj.name);
+		statement.setString(2, obj.hasInfo() ? obj.info.value : null);
+		statement.setInt(3, obj.getPriority());
+		statement.execute();
+		ResultSet result = statement.getGeneratedKeys();
+		if (result.next()) {
+			if (!obj.isIdSet()) // hehe thread safety go brr
+				obj.setId(result.getLong(1));
+		}
+	}
+
+	@Override
+	protected void implUpdate(PartOfSpeech obj) throws SQLException {
+		if (!obj.isIdSet())
+			throw new IllegalArgumentException("id not set");
+
+		PreparedStatement statement = connection.prepareStatement("update GRAMMAR SET name=?, info=?, priority=? WHERE p_id=?");
+		statement.setString(1, obj.name);
+		statement.setString(2, obj.hasInfo() ? obj.info.value : null);
+		statement.setInt(3, obj.getPriority());
+		statement.setLong(4, obj.id());
+		statement.execute();
+	}
+
+	@Override
+	protected PartOfSpeech withId(PartOfSpeech obj, long newId) {
+		return obj.copy().id(newId).build();
+	}
+
+	@Override
+	protected boolean hasId(PartOfSpeech obj) {
+		return obj.isIdSet();
+	}
+
+	@Override
+	protected long[] findSimilar(PartOfSpeech obj) throws SQLException {
+		PreparedStatement statement = connection.prepareStatement("select p_id from GRAMMAR where name=? AND priority=? AND " + (obj.hasInfo() ? "info=?" : "info IS NULL"));
+		statement.setString(1, obj.name);
+		statement.setInt(2, obj.getPriority());
+		if (obj.hasInfo())
+			statement.setString(3, obj.info.value);
+
+		return parseKeySet(statement.executeQuery());
+	}
+
+	@Override
+	protected PartOfSpeech getByID(long id) throws SQLException {
+		PreparedStatement statement = connection.prepareStatement("select name, info, priority from GRAMMAR where p_id=?");
+		statement.setLong(1, id);
+		ResultSet result = statement.executeQuery();
+
+		if (!result.next())
+			return null;
+
+		return buildPartOfSpeech(result, id);
+	}
+
+	@Override
+	protected PreparedStatement selectAllQuery(boolean count) throws SQLException {
+		return connection.prepareStatement(count
+										   ? selectCountStatement("GRAMMAR")
+										   : "select name, priority, info, p_id from GRAMMAR");
+	}
+
+	@Override
+	protected PartOfSpeech selectAllBuild(ResultSet result) throws SQLException {
+		return buildPartOfSpeech(result, result.getLong(4));
+	}
+
+
+}

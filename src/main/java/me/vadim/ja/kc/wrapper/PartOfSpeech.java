@@ -3,16 +3,20 @@ package me.vadim.ja.kc.wrapper;
 /**
  * @author vadim
  */
-public class PartOfSpeech {
+public class PartOfSpeech extends IdAdapter {
 
 	public final String name;
 	public final Info   info;
-	public final int priority;
+	private final int priority;
 
-	private PartOfSpeech(String name, Info info, int priority) {
+	PartOfSpeech(String name, Info info, int priority) {
 		this.name = name;
 		this.info = info;
 		this.priority = priority;
+	}
+
+	public int getPriority(){
+		return priority;
 	}
 
 	public boolean hasInfo() {
@@ -24,12 +28,21 @@ public class PartOfSpeech {
 		return name;
 	}
 
+	public String toInfoString() {
+		return (hasInfo() ? info.value + " " : "") + name;
+	}
+
+	public final Builder copy(){
+		return builder().name(name).info(info).priority(priority);
+	}
+
 	public static Builder builder() { return new Builder(); }
 
 	public static final class Builder {
 		private String name;
-		private Info   info;
+		private String info;
 		private int priority;
+		private long id = -1;
 
 		private Builder() {}
 
@@ -39,8 +52,13 @@ public class PartOfSpeech {
 		}
 
 		public Builder info(String info) {
+			this.info = info;
+			return this;
+		}
+
+		private Builder info(Info info){
 			if(info != null)
-				this.info = new Info(info);
+				this.info = info.value;
 			return this;
 		}
 
@@ -49,10 +67,27 @@ public class PartOfSpeech {
 			return this;
 		}
 
+		public Builder id(long id){
+			this.id = id;
+			return this;
+		}
+
 		public PartOfSpeech build() {
+			if(name == null)
+				throw new NullPointerException("name cannot be null");
+
+			Info info = null;
+			if(this.info != null)
+				info = new Info(this.info);
+
 			PartOfSpeech result = new PartOfSpeech(name, info, priority);
+
 			if(info != null)
 				info.parent = result;
+
+			if(id != -1)
+				result.setId(id);
+
 			return result;
 		}
 	}

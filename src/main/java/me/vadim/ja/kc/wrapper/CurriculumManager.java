@@ -1,6 +1,8 @@
 package me.vadim.ja.kc.wrapper;
 
-import me.vadim.ja.kc.card.FlashcardPipeline;
+import me.vadim.ja.kc.render.electron.ElectronPDFConverter;
+import me.vadim.ja.kc.render.factory.DiagramCreator;
+import me.vadim.ja.kc.render.factory.FlashcardPipeline;
 
 import java.awt.*;
 import java.io.ByteArrayInputStream;
@@ -19,13 +21,14 @@ public class CurriculumManager {
 
 	public static final CurriculumManager cringe = new CurriculumManager();
 
+	private CurriculumManager(){}
+
 	public final Map<Long, Curriculum> curriculums = new HashMap<>();
 
 	public Curriculum genki() {
 		return curriculums.computeIfAbsent(0L, (k) -> {
-			Curriculum genki  = new Curriculum(k, "Genki");
-			Group      lesson = new Group(0, "Lesson 3", genki);
-			genki.groups.add(lesson);
+			Curriculum genki  = new Curriculum("Genki");
+			genki.createGroup("Lesson 3");
 			return genki;
 		});
 	}
@@ -73,7 +76,7 @@ public class CurriculumManager {
 
 	public List<PartOfSpeech> partsOfSpeechDistinct() { // distinct on PoS name
 		return partsOfSpeech().stream()
-							  .sorted(Comparator.comparingInt(x -> x.priority))
+							  .sorted(Comparator.comparingInt(PartOfSpeech::getPriority))
 							  .collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(PartOfSpeech::toString))),
 																	ArrayList::new));
 	}
@@ -82,21 +85,21 @@ public class CurriculumManager {
 		List<PartOfSpeech.Info> result = new ArrayList<>();
 		for (PartOfSpeech p : pos)
 			if (p.name.equalsIgnoreCase(part.name))
-				if (p.info != null)
+				if (p.hasInfo())
 					result.add(p.info);
 		return result;
 	}
 
 	public Kanji createKanji(String value, Group group) {
-		return new Kanji(0, value, group);
+		return new Kanji(value, group);
 	}
 
 	FlashcardPipeline pipeline;
 
 	public void submit(Kanji kanji) {
 		if (pipeline == null)
-//			pipeline = new FlashcardPipeline("D:\\Programming\\Anaconda3\\Scripts\\kanji.exe", 8001, "http://localhost:8081/pdfexport");
-			pipeline = new FlashcardPipeline("D:\\Programming\\Anaconda3\\Scripts\\kanji.exe", 8001, "http://127.0.0.1:8081/pdfexport");
+			pipeline = new FlashcardPipeline(new  DiagramCreator("D:\\Programming\\Anaconda3\\Scripts\\kanji.exe", 200, true, 5, DiagramCreator.DOWN),
+											 new ElectronPDFConverter(8001, "http://127.0.0.1:8081/pdfexport"));
 		System.out.println("generating " + kanji);
 
 		try {

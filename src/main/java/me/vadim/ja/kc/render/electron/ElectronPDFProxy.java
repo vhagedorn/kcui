@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.card;
+package me.vadim.ja.kc.render.electron;
 
 import com.google.gson.JsonObject;
 
@@ -13,10 +13,10 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author vadim
  */
-public class ConversionProxy {
+public class ElectronPDFProxy {
 	private final String url;
 
-	public ConversionProxy(String url) {
+	public ElectronPDFProxy(String url) {
 		this.url = url;
 	}
 

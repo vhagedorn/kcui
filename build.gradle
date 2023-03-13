@@ -33,6 +33,7 @@ dependencies {
     implementation 'org.imgscalr:imgscalr-lib:4.2'
     implementation 'org.jetbrains.kotlin:kotlin-reflect:1.5.30'
     implementation 'org.apache.pdfbox:pdfbox:2.0.27'
+    implementation 'org.xerial:sqlite-jdbc:3.41.0.0'
 }
 
 //generate `version` file to add to jar

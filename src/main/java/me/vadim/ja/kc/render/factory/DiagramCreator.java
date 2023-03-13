@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.card;
+package me.vadim.ja.kc.render.factory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,13 +10,20 @@ import java.util.stream.Collectors;
  */
 public class DiagramCreator {
 
-	//rtl top to bottom
-	public static final String DOWN = "down";
-	public static final String Y    = DOWN;
+	/**
+	 * rtl top to bottom
+	 */
+	public static final String DOWN, Y, y;
 
-	//ltr standard mode
-	public static final String ACROSS = "across";
-	public static final String X      = ACROSS;
+	/**
+	 * ltr standard mode
+	 */
+	public static final String ACROSS, X, x;
+
+	static {
+		DOWN   = Y = y = "down";
+		ACROSS = X = x = "across";
+	}
 
 	public final String  exec;
 	public final short   dpi;
@@ -43,49 +50,34 @@ public class DiagramCreator {
 		mask |= drawFullKanji ? 1 : 0;
 		mask <<= 1;
 		mask |= orientation.equals(Y) ? 0 : 1;
+		mask <<= 1;
 
 		/*reserved*/
-		mask <<= 6;
+		mask <<= 6 - 1;
 		/*configuration*/
+		// TIL: implicit widening conversions preserve sign bits
 		mask <<= 16;
-		mask |= dpi;
+		mask |= Short.toUnsignedInt(dpi);
 
 		mask <<= 8;
-		mask |= wrapAt;
+		mask |= Byte.toUnsignedInt(wrapAt);
 
 		return mask;
 	}
 
-	public static DiagramCreator fromBitmask(int mask) {
-//		boolean dfk = (mask & 0b10_000000_0000000000000000_00000000) != 0;
-		boolean dfk = (mask >>> 31) != 0;
-		String orient = (mask << 1 >>> 1 >>> 30) == 0 ? Y : X;
-		short dpi = (short) (mask << 8 >>> 16);
-		byte wrap = (byte) (mask << 24 >>> 24);
-
-		System.out.println("dfk:"+dfk);
-		System.out.println("o:"+orient);
-		System.out.println("dpi:"+dpi);
-		System.out.println("wrap:"+wrap);
-		return null;
-	}
-
-	public static void main(String[] args) {
-		DiagramCreator xd = new DiagramCreator(null, 596, false, 255, X);
-		System.out.println("dfk:"+xd.drawFullKanji);
-		System.out.println("o:"+xd.orientation);
-		System.out.println("dpi:"+xd.dpi);
-		System.out.println("wrap:"+xd.wrapAt);
-		int bitmask = xd.toBitmask();
-		System.out.println("mask="+bitmask);
-		DiagramCreator.fromBitmask(bitmask);
+	public static DiagramCreator fromBitmask(int mask, String exec) {
+		boolean dfk    = (mask >>> 31) != 0;
+		String  orient = (mask << 1 >>> 1 >>> 30) == 0 ? Y : X;
+		int     dpi    = (mask << 8 >>> 16) & 0xFFFF; // short
+		int     wrap   = (mask << 24 >>> 24) & 0xFF; // byte
+		return new DiagramCreator(exec, dpi, dfk, wrap, orient);
 	}
 
 	public boolean isRTL() {
 		return orientation.equals(Y);
 	}
 
-	public String strokeOrder(char kanji) {
+	public String strokeOrder(String character) {
 		try {
 			String[] cmd = {
 					exec,
@@ -94,7 +86,7 @@ public class DiagramCreator {
 					"--draw-full-kanji", String.valueOf(drawFullKanji),
 					"--num-panels", String.valueOf(wrapAt),
 					"--orientation", orientation,
-					"0x" + Integer.toHexString(kanji)
+					"0x" + Integer.toHexString(Character.codePointAt(character, 0))
 			};
 
 			System.out.println("> " + String.join(" ", cmd));

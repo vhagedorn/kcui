@@ -12,9 +12,14 @@ public class Curriculum extends IdAdapter {
 
 	public final Set<Group> groups = new HashSet<>();
 
-	public Curriculum(long id, String name) {
-		super(id);
+	public Curriculum(String name) {
 		this.name = name;
+	}
+
+	public Group createGroup(String name){
+		Group group = new Group(name, this);
+		this.groups.add(group);
+		return group;
 	}
 
 	@Override

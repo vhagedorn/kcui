@@ -5,14 +5,41 @@ package me.vadim.ja.kc.wrapper;
  */
 public abstract class IdAdapter implements Identifiable {
 
-	private final long id;
+	private long id;
+	private boolean isIdSet;
+
+	public IdAdapter(){
+		this.id = -1;
+		this.isIdSet = false;
+	}
 
 	public IdAdapter(long id) {
 		this.id = id;
+		this.isIdSet = true;
+	}
+
+	public final boolean isIdSet(){
+		return this.isIdSet;
+	}
+
+	public final void setId(long id){
+		if(this.isIdSet)
+			throw new UnsupportedOperationException("lazy value already initialized");
+
+		this.id = id;
+		this.isIdSet = true;
+	}
+
+	public final long getId(){
+		if(!this.isIdSet)
+			throw new UnsupportedOperationException("lazy value not initialized");
+
+		return this.id;
 	}
 
 	@Override
-	public long id() {
-		return this.id;
+	public final long id() {
+		return getId();
 	}
+
 }

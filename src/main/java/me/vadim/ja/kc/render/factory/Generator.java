@@ -1,14 +1,16 @@
-package me.vadim.ja.kc.card;
+package me.vadim.ja.kc.render.factory;
 
+import me.vadim.ja.kc.ResourceAccess;
+import me.vadim.ja.kc.wrapper.Definition;
 import me.vadim.ja.kc.wrapper.Kanji;
-import me.vadim.ja.kc.wrapper.PronounciationType;
+import me.vadim.ja.kc.wrapper.PartOfSpeech;
+import me.vadim.ja.kc.wrapper.Pronounciation;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 /**
@@ -65,31 +67,33 @@ public class Generator implements ResourceAccess {
 			element.html("");
 			Element div;
 			Element span;
-			for (Map.Entry<PronounciationType, List<String>> entry : kanji.pronounciations.entrySet()) {
-				for (String p : entry.getValue()) {
-					div = doc.createElement("div");
+			kanji.pronounciations.sort(Comparator.comparingInt(x -> x.index));
+			for (Pronounciation pronounciation : kanji.pronounciations) {
+				div = doc.createElement("div");
 
-					//todo: orientation?
-					//todo: pronounciation type?
-					span = doc.createElement("span");
-					span.attr("class", "psym");
-					span.html("⛛");
-					div.appendChild(span);
+				//todo: orientation?
+				//todo: pronounciation type?
+				span = doc.createElement("span");
+				span.attr("class", "psym");
+				span.html("⛛");// <- todo
+				div.appendChild(span);
 
-					span = doc.createElement("span");
-					span.attr("class", "pron");
-					span.html(p);
-					div.appendChild(span);
+				span = doc.createElement("span");
+				span.attr("class", "pron");
+				span.html(pronounciation.value);
+				div.appendChild(span);
 
-					element.appendChild(div);
-				}
+				element.appendChild(div);
 			}
 
 			//part of speech
 			element = doc.getElementById("type");
 			if (element == null)
 				throw new IllegalStateException();
-			element.html(kanji.partsOfSpeech.stream().map(x -> (x.info == null ? "" : x.info + " ") + x.name).collect(Collectors.joining(", ")));
+			element.html(kanji.partsOfSpeech.stream()
+											.sorted(Comparator.comparingInt(PartOfSpeech::getPriority))
+											.map(PartOfSpeech::toInfoString)
+											.collect(Collectors.joining(", ")));
 
 			//definition
 			element = doc.getElementById("definition");
@@ -97,9 +101,10 @@ public class Generator implements ResourceAccess {
 				throw new IllegalStateException();
 			element.html("");
 			Element li;
-			for (String def : kanji.definitions) {
+			kanji.definitions.sort(Comparator.comparingInt(x -> x.index));
+			for (Definition def : kanji.definitions) {
 				li = doc.createElement("li");
-				li.html(def);
+				li.html(def.value);
 				element.appendChild(li);
 			}
 

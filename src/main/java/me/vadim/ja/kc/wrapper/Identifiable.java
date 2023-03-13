@@ -5,6 +5,6 @@ package me.vadim.ja.kc.wrapper;
  */
 public interface Identifiable {
 
-	public long id();
+	long id();
 
 }

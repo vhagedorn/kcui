@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.card;
+package me.vadim.ja.kc.render;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;

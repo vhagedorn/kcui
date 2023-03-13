@@ -1,7 +1,6 @@
 package me.vadim.ja.kc;
 
 import me.vadim.ja.Application;
-import me.vadim.ja.kc.card.ResourceAccess;
 import me.vadim.ja.kc.wrapper.CurriculumManager;
 import me.vadim.ja.kc.wrapper.PartOfSpeech;
 

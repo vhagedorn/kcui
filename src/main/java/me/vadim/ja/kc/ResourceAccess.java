@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.card;
+package me.vadim.ja.kc;
 
 import java.io.IOException;
 import java.io.InputStream;
