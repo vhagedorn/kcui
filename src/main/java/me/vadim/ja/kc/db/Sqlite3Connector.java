@@ -42,6 +42,7 @@ public abstract class Sqlite3Connector {
 			preConnect();
 			connection = DriverManager.getConnection("jdbc:sqlite:" + db.getPath());
 			onConnect();
+			createTables();
 		} catch (SQLException x) {
 			throw new RuntimeException(x);
 		}
@@ -62,5 +63,7 @@ public abstract class Sqlite3Connector {
 
 	protected void preDisconnect() throws SQLException {}
 	protected void onDisconnect()  /* connection already disposed */ {}
+
+	protected void createTables() throws SQLException {}
 
 }
