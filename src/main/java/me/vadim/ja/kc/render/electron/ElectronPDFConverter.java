@@ -2,31 +2,31 @@ package me.vadim.ja.kc.render.electron;
 
 import me.vadim.ja.kc.ResourceAccess;
 import me.vadim.ja.kc.render.ConversionService;
-import me.vadim.ja.kc.render.InMemoryFileServer;
 import me.vadim.ja.kc.render.PrintOptions;
-import me.vadim.ja.kc.render.ServerResource;
+import me.vadim.ja.kc.render.impl.ServerResourceIdentifier;
+import me.vadim.ja.kc.render.impl.StaticFileServer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author vadim
  */
 public class ElectronPDFConverter implements ConversionService, ResourceAccess {
 
-	private final ElectronPDFProxy   proxy;
-	private final InMemoryFileServer server;
+	private final ElectronPDFProxy proxy;
+	private final StaticFileServer server;
+	private final ExecutorService worker;
 
-	public ElectronPDFConverter(int port, String electronConvertURL) {
-		try (InputStream is = loadResource("doc/printing.css")) {
-			this.proxy  = new ElectronPDFProxy(electronConvertURL);
-			this.server = new InMemoryFileServer(port);
-			server.putResource("/css", new ServerResource("printing.css", is.readAllBytes(), "text/css", StandardCharsets.UTF_8));
+	public ElectronPDFConverter(int port, String electronConvertURL, ExecutorService worker) {
+		this.proxy = new ElectronPDFProxy(electronConvertURL);
+		this.worker = worker;
+		try {
+			this.server = new StaticFileServer(port, "/uploads",
+											   new ServerResourceIdentifier("/css", "printing.css", "text/css", "doc/printing.css"));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -34,9 +34,9 @@ public class ElectronPDFConverter implements ConversionService, ResourceAccess {
 
 	@Override
 	public PDDocument createPDF(Document html, PrintOptions options) {
-		String name = UUID.randomUUID() + ".html";
-		String url  = server.putResource("/html", new ServerResource(name, html.outerHtml(), "text/html"));
-		byte[] pdf = proxy.requestConversionFor(url)[0];
+		//:kekA: options ignored
+		String url  = server.uploadDocument(html);
+		byte[] pdf  = proxy.requestConversionFor(url)[0];
 		try {
 			return PDDocument.load(pdf);
 		} catch (IOException e) {
@@ -47,7 +47,7 @@ public class ElectronPDFConverter implements ConversionService, ResourceAccess {
 	//hehehehaw
 	@Override
 	public CompletableFuture<PDDocument> submitJob(Document html, PrintOptions options) {
-		return CompletableFuture.supplyAsync(() -> createPDF(html, options));
+		return CompletableFuture.supplyAsync(() -> createPDF(html, options), worker);
 	}
 
 }

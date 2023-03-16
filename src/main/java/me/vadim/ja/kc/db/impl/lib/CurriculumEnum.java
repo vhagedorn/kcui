@@ -17,7 +17,7 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 	private /*static*/ Curriculum create(String name, long id){
 		Curriculum c = new Curriculum(name);
 		c.setId(id);
-		for (Group.Builder group : groups.query())
+		for (Group.Builder group : groups.values())
 			if(group.c_id == id)
 				c.groups.add(group.curriculum(c).build());
 
@@ -39,7 +39,7 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 
 	@Override
 	protected void implDelete(long id) throws SQLException {
-		Curriculum q = query(id);
+		Curriculum q = select(id);
 		if(q != null)
 			q.groups.stream().map(Group::id).forEach(groups::delete);
 
@@ -62,7 +62,7 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 
 		for (Group group : obj.groups) {
 			Group.Builder cp = group.copy();
-			groups.insert(cp);
+			groups.create(cp);
 			if(!group.isIdSet())
 				group.setId(cp.id);
 		}
@@ -83,7 +83,7 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 			if(group.isIdSet())
 				cp.id(group.id());
 
-			groups.upsert(cp);
+			groups.update(cp);
 
 			if(!group.isIdSet())
 				group.setId(cp.id);
@@ -101,7 +101,7 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 	}
 
 	@Override
-	protected long[] findSimilar(Curriculum obj) throws SQLException {
+	protected long[] implSelect(Curriculum obj) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("select c_id from CURRICULUMS where name=?");
 		statement.setString(1, obj.name);
 		
@@ -109,7 +109,7 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 	}
 
 	@Override
-	protected Curriculum getByID(long id) throws SQLException {
+	protected Curriculum implSelect(long id) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("select name from CURRICULUMS where c_id=?");
 		statement.setLong(1, id);
 		ResultSet result = statement.executeQuery();

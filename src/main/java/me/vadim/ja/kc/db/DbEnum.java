@@ -21,27 +21,13 @@ public interface DbEnum<I extends Identifiable> extends DbAddon {
 	 * Insert a new {@link I object}.
 	 * @param obj the {@link I object} to create
 	 */
-	void insert(I obj);
+	void create(I obj);
 
 	/**
-	 * Update the given {@link I object} with new values.
-	 * @param obj the {@link I#id() id} of the row to update and the new {@link I object} with to update it
-	 */
-	void update(I obj);
-
-	/**
-	 * Delete all duplicate {@link I objects} but one and {@link #update(Identifiable) update} it, or {@link #insert(Identifiable) create} a new object.
+	 * {@code DELETE} all duplicate {@link I objects} but one and {@code UPDATE} it, or {@code INSERT} a new object.
 	 * @param obj the {@link I object} to update
 	 */
-	void upsert(I obj);
-
-	/**
-	 * Find {@link I#id() ids} of all similar {@link I objects}.
-	 * @param obj the {@link I object} to find
-	 * @return an array of {@link I#id() ids} of identical {@link I objects}
-	 */
-	@NotNull
-	long[] query(I obj);
+	void update(I obj);
 
 	/**
 	 * Find the {@link I object} with a given {@link I#id() id}.
@@ -49,13 +35,21 @@ public interface DbEnum<I extends Identifiable> extends DbAddon {
 	 * @return a newly built {@link I object}
 	 */
 	@Nullable
-	I query(long id);
+	I select(long id);
+
+	/**
+	 * Find {@link I#id() ids} of all similar {@link I objects}.
+	 * @param obj the {@link I object} to find
+	 * @return an array of {@link I#id() ids} of identical {@link I objects}
+	 */
+	@NotNull
+	long[] findSimilar(I obj);
 
 	/**
 	 * Find all {@link I objects} in this enumeration.
 	 * @return all {@link I objects} in the table
 	 */
 	@NotNull
-	I[] query();
+	I[] values();
 
 }

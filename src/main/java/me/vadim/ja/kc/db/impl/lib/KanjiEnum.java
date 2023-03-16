@@ -12,10 +12,10 @@ import java.sql.SQLException;
 /**
  * @author vadim
  */
-public class KanjiEnum extends DbEnumAdapter<Kanji> {
+class KanjiEnum extends DbEnumAdapter<Kanji> {
 
 	private /*static*/ Kanji create(String value, long c_id, long g_id, long id) {
-		Curriculum curriculum = curriculums.query(c_id);
+		Curriculum curriculum = curriculums.select(c_id);
 		if(curriculum == null)
 			throw new IllegalStateException(String.format("Invalid c_id (%d) for kanji (%d).", c_id, id));
 
@@ -67,7 +67,7 @@ public class KanjiEnum extends DbEnumAdapter<Kanji> {
 
 	@Override
 	protected void implDelete(long id) throws SQLException {
-		Kanji q = query(id);
+		Kanji q = select(id);
 
 		if (q != null)
 			clear(q);
@@ -126,7 +126,7 @@ public class KanjiEnum extends DbEnumAdapter<Kanji> {
 	}
 
 	@Override
-	protected long[] findSimilar(Kanji obj) throws SQLException {
+	protected long[] implSelect(Kanji obj) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("select id from CARDS where kanji=? AND c_id=? AND g_id=?");
 		statement.setString(1, obj.value);
 		statement.setLong(2, obj.curriculum.id());
@@ -136,7 +136,7 @@ public class KanjiEnum extends DbEnumAdapter<Kanji> {
 	}
 
 	@Override
-	protected Kanji getByID(long id) throws SQLException {
+	protected Kanji implSelect(long id) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("select kanji, c_id, g_id from CARDS where id=?");
 		statement.setLong(1, id);
 		ResultSet result = statement.executeQuery();
@@ -156,6 +156,6 @@ public class KanjiEnum extends DbEnumAdapter<Kanji> {
 
 	@Override
 	protected Kanji selectAllBuild(ResultSet result) throws SQLException {
-		return create(result.getString("1"), result.getLong(2), result.getLong(3), result.getLong(4));
+		return create(result.getString(1), result.getLong(2), result.getLong(3), result.getLong(4));
 	}
 }

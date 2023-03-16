@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.render.factory;
+package me.vadim.ja.kc.render.img;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -38,6 +38,10 @@ public class DiagramCreator {
 		this.drawFullKanji = drawFullKanji;
 		this.wrapAt        = (byte) wrapAt;
 		this.orientation   = orientation;
+	}
+
+	public DiagramCreator withOptions(int bitmask){
+		return DiagramCreator.fromBitmask(bitmask, this.exec);
 	}
 
 	//dfk ,orient ,            ,dpi   ,wrap

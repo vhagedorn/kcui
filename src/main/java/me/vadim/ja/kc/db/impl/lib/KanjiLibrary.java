@@ -1,17 +1,15 @@
 package me.vadim.ja.kc.db.impl.lib;
 
 import me.vadim.ja.kc.db.DbEnum;
-import me.vadim.ja.kc.db.Sqlite3Connector;
-import me.vadim.ja.kc.wrapper.Curriculum;
-import me.vadim.ja.kc.wrapper.Kanji;
-import me.vadim.ja.kc.wrapper.PartOfSpeech;
+import me.vadim.ja.kc.db.impl.Sqlite3Database;
+import me.vadim.ja.kc.wrapper.*;
 
 import java.sql.SQLException;
 
 /**
  * @author vadim
  */
-public class KanjiLibrary extends Sqlite3Connector {
+public final class KanjiLibrary extends Sqlite3Database {
 
 	private final DbEnum<PartOfSpeech> pos;
 	private final DbEnum<Curriculum>   curriculums;
@@ -26,11 +24,6 @@ public class KanjiLibrary extends Sqlite3Connector {
 
 	@Override
 	protected void onConnect() throws SQLException {
-//		connection.prepareStatement("drop table CURRICULUMS; drop table GROUPS").execute();
-//		connection.setAutoCommit(false);
-//		connection.commit();
-//		connection.setAutoCommit(true);
-		System.out.println("DROPPED TABLES ");
 		pos.initialize(connection);
 		curriculums.initialize(connection);
 		cards.initialize(connection);
@@ -52,9 +45,38 @@ public class KanjiLibrary extends Sqlite3Connector {
 		KanjiLibrary lib = new KanjiLibrary();
 		lib.connect();
 
+		CurriculumManager mgr = CurriculumManager.cringe;
 		DbEnum<Kanji> k = lib.getCards();
+		DbEnum<PartOfSpeech> p = lib.getPartOfSpeech();
+		DbEnum<Curriculum> c = lib.getCurriculums();
 
+//		for (PartOfSpeech value : p.values())
+//			p.delete(value.id());
+//
+//		for (PartOfSpeech part : mgr.partsOfSpeech())
+//			p.create(part);
 
+		Kanji myK = new Kanji("The", c.values()[0].getGroups().get(0));
+		myK.addDefinition("define me");
+		myK.addPartOfSpeech(p.values()[0]);
+		myK.addPronounciation(PronounciationType.UNKNOWN, "yeet");
+
+		System.out.println(myK.toPreviewString());
+
+		k.update(myK);
+
+		for (Kanji kanji : k.values())
+			System.out.println(kanji.toPreviewString());
+
+		myK.definitions.clear();
+		myK.addDefinition("Bruh");
+		myK.pronounciations.clear();
+		myK.addPronounciation(PronounciationType.KUN_YOMI, "lmfao");
+
+		k.update(myK);
+
+		for (Kanji kanji : k.values())
+			System.out.println(kanji.toPreviewString());
 
 		lib.disconnect();
 	}

@@ -56,7 +56,7 @@ class DefMultimap extends DbMultimapAdapter<Kanji, Definition> {
 		for (Definition def : values) {
 			statement.setLong(1, key.id());
 			statement.setString(2, def.value);
-			statement.setInt(3, def.index);
+			statement.setInt(3, def.getIndex());
 			statement.addBatch();
 		}
 		statement.executeBatch();

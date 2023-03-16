@@ -39,7 +39,7 @@ class PoSMultimap extends DbMultimapAdapter<Kanji, PartOfSpeech> {
 		List<PartOfSpeech> parts = new ArrayList<>(3);
 		while(result.next()){
 			long id = result.getInt(1);
-			PartOfSpeech part = reg.query(id);
+			PartOfSpeech part = reg.select(id);
 			if(part == null)
 				throw new IllegalStateException(String.format("Invalid p_id (%d) in pronounciation for kanji %s (%d).", id, key, key.id()));
 			parts.add(part);

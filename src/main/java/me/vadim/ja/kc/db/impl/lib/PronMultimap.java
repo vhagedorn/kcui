@@ -62,7 +62,7 @@ class PronMultimap extends DbMultimapAdapter<Kanji, Pronounciation> {
 			statement.setLong(1, key.id());
 			statement.setString(2, pron.value);
 			statement.setInt(3, pron.type.id);
-			statement.setInt(4, pron.index);
+			statement.setInt(4, pron.getIndex());
 			statement.addBatch();
 		}
 		statement.executeBatch();

@@ -1,6 +1,8 @@
 package me.vadim.ja.kc.wrapper;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -20,6 +22,10 @@ public class Curriculum extends IdAdapter {
 		Group group = new Group(name, this);
 		this.groups.add(group);
 		return group;
+	}
+
+	public List<Group> getGroups() {
+		return new ArrayList<>(groups);
 	}
 
 	@Override

@@ -3,15 +3,12 @@ package me.vadim.ja.kc.render.factory;
 import me.vadim.ja.kc.ResourceAccess;
 import me.vadim.ja.kc.wrapper.Definition;
 import me.vadim.ja.kc.wrapper.Kanji;
-import me.vadim.ja.kc.wrapper.PartOfSpeech;
 import me.vadim.ja.kc.wrapper.Pronounciation;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 
 /**
  * @author vadim
@@ -67,8 +64,7 @@ public class Generator implements ResourceAccess {
 			element.html("");
 			Element div;
 			Element span;
-			kanji.pronounciations.sort(Comparator.comparingInt(x -> x.index));
-			for (Pronounciation pronounciation : kanji.pronounciations) {
+			for (Pronounciation pronounciation : kanji.getPronounciations()) {
 				div = doc.createElement("div");
 
 				//todo: orientation?
@@ -90,10 +86,7 @@ public class Generator implements ResourceAccess {
 			element = doc.getElementById("type");
 			if (element == null)
 				throw new IllegalStateException();
-			element.html(kanji.partsOfSpeech.stream()
-											.sorted(Comparator.comparingInt(PartOfSpeech::getPriority))
-											.map(PartOfSpeech::toInfoString)
-											.collect(Collectors.joining(", ")));
+			element.html(kanji.toGrammarString());
 
 			//definition
 			element = doc.getElementById("definition");
@@ -101,8 +94,7 @@ public class Generator implements ResourceAccess {
 				throw new IllegalStateException();
 			element.html("");
 			Element li;
-			kanji.definitions.sort(Comparator.comparingInt(x -> x.index));
-			for (Definition def : kanji.definitions) {
+			for (Definition def : kanji.getDefinitions()) {
 				li = doc.createElement("li");
 				li.html(def.value);
 				element.appendChild(li);

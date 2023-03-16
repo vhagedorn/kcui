@@ -29,11 +29,13 @@ dependencies {
     implementation 'com.github.mslxl:KtSwing:2.1.2'
     implementation 'com.formdev:flatlaf:3.0'
     implementation 'com.formdev:flatlaf-intellij-themes:3.0'
-    implementation 'com.miglayout:miglayout-swing:4.2'
+//    implementation 'com.miglayout:miglayout-swing:4.2'
     implementation 'org.imgscalr:imgscalr-lib:4.2'
     implementation 'org.jetbrains.kotlin:kotlin-reflect:1.5.30'
     implementation 'org.apache.pdfbox:pdfbox:2.0.27'
     implementation 'org.xerial:sqlite-jdbc:3.41.0.0'
+    implementation 'io.github.fanyong920:jvppeteer:1.1.5'
+    implementation 'com.google.guava:guava:31.1-jre'
 }
 
 //generate `version` file to add to jar

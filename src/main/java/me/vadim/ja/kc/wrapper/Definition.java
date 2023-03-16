@@ -6,7 +6,7 @@ package me.vadim.ja.kc.wrapper;
 public class Definition {
 
 	public final String value;
-	public final int    index;
+	private final int    index;
 
 	Definition(String value, int index) {
 		this.value = value;
@@ -19,6 +19,15 @@ public class Definition {
 
 	public Builder copy(){
 		return builder().value(value).index(index);
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	@Override
+	public String toString() {
+		return value;
 	}
 
 	public static final class Builder {

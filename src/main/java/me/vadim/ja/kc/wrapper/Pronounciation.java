@@ -6,12 +6,16 @@ package me.vadim.ja.kc.wrapper;
 public class Pronounciation {
 	public final String             value;
 	public final PronounciationType type;
-	public final int                index;
+	private final int                index;
 
 	Pronounciation(PronounciationType type, String value, int index) {
 		this.value = value;
 		this.type  = type;
 		this.index = index;
+	}
+
+	public int getIndex() {
+		return index;
 	}
 
 	public static Builder builder() {
@@ -20,6 +24,11 @@ public class Pronounciation {
 
 	public Builder copy() {
 		return builder().value(value).index(index);
+	}
+
+	@Override
+	public String toString() {
+		return value;
 	}
 
 	public static final class Builder {

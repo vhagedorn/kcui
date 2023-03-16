@@ -4,6 +4,7 @@ import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -26,6 +27,32 @@ public final class PDFUtil {
 			byte[] data = baos.toByteArray();
 			doc.close();
 			return data;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Export a {@link PDDocument PDF} to the disk.
+	 * <p>The provided {@link PDDocument PDF} is <b>closed</b> after reading.
+	 *
+	 * @param doc the source {@link PDDocument document}
+	 * @param file the destination {@link File}; the file and necessary directories will be created if not already present
+	 *
+	 */
+	public static void export(PDDocument doc, File file) {
+		try (doc) {
+			if(doc.getDocument().isClosed())
+				throw new IllegalArgumentException("Document " + doc + " already closed!");
+
+			if(!file.isFile()) {
+				file.getParentFile().mkdirs();
+				file.createNewFile();
+			}
+			if(!file.isFile())
+				throw new IllegalArgumentException("File "+file+" is inaccessible.");
+
+			doc.save(file);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -62,7 +89,8 @@ public final class PDFUtil {
 		if (pages.length == 0)
 			util = new PDFMergerUtility();
 
-		try (PDDocument output = new PDDocument()) {
+		PDDocument output = new PDDocument();
+		try {
 			for (PDDocument pdf : docs)
 				if (util != null)
 					util.appendDocument(output, pdf);

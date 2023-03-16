@@ -1,8 +1,8 @@
 package me.vadim.ja.kc.wrapper;
 
-import me.vadim.ja.kc.render.electron.ElectronPDFConverter;
-import me.vadim.ja.kc.render.factory.DiagramCreator;
+import me.vadim.ja.kc.render.PDFConverters;
 import me.vadim.ja.kc.render.factory.FlashcardPipeline;
+import me.vadim.ja.kc.render.img.DiagramCreator;
 
 import java.awt.*;
 import java.io.ByteArrayInputStream;
@@ -19,15 +19,22 @@ import java.util.stream.Collectors;
  */
 public class CurriculumManager {
 
+	private static void launch(File file){
+		try {
+			Desktop.getDesktop().open(file);
+		} catch (IOException ignored){}
+	}
+
+
 	public static final CurriculumManager cringe = new CurriculumManager();
 
-	private CurriculumManager(){}
+	private CurriculumManager() {}
 
 	public final Map<Long, Curriculum> curriculums = new HashMap<>();
 
 	public Curriculum genki() {
 		return curriculums.computeIfAbsent(0L, (k) -> {
-			Curriculum genki  = new Curriculum("Genki");
+			Curriculum genki = new Curriculum("Genki");
 			genki.createGroup("Lesson 3");
 			return genki;
 		});
@@ -96,11 +103,25 @@ public class CurriculumManager {
 
 	FlashcardPipeline pipeline;
 
-	public void submit(Kanji kanji) {
+	private void lazy() {
 		if (pipeline == null)
-			pipeline = new FlashcardPipeline(new  DiagramCreator("D:\\Programming\\Anaconda3\\Scripts\\kanji.exe", 200, true, 5, DiagramCreator.DOWN),
-											 new ElectronPDFConverter(8001, "http://127.0.0.1:8081/pdfexport"));
-		System.out.println("generating " + kanji);
+			pipeline = new FlashcardPipeline(new DiagramCreator("D:\\Programming\\Anaconda3\\Scripts\\kanji.exe", 200, true, 5, DiagramCreator.DOWN),
+//											 PDFConverters.electron("http://127.0.0.1:8081/pdfexport")
+											 PDFConverters.jvppetteer()
+			);
+	}
+
+	public void cacheImgs(Kanji kanji) {
+		if (kanji.value.isEmpty() || kanji.value.isBlank()) // ignore excess events
+			return;
+		lazy();
+		System.out.println("Caching stroke order diagrams for partial kanji " + kanji.value);
+		pipeline.cacheStrokeDiagrams(kanji);
+	}
+
+	public void submit(Kanji kanji, int renderOpts) {
+		lazy();
+		System.out.println("generating " + kanji.toPreviewString());
 
 		try {
 			File dir = new File("out");
@@ -111,13 +132,24 @@ public class CurriculumManager {
 
 			File target = new File(dir, "card.pdf");
 
-			Files.copy(new ByteArrayInputStream(pipeline.createFlashcardPDF(kanji)), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(new ByteArrayInputStream(pipeline.createFlashcardPDF(kanji, renderOpts)), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			Desktop.getDesktop().open(target);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 
 		System.out.println("done");
+	}
+
+	public void submitAsync(Kanji kanji, int renderOpts) {
+		lazy();
+
+		pipeline.queueFlashcardGeneration(kanji, new File("out", "card.pdf"), renderOpts).thenAccept(CurriculumManager::launch);
+	}
+
+	public void save(Kanji kanji) {
+		System.out.println("TODO");
+//		pipeline.queueFlashcardGeneration(kanji, new File("out", "card.pdf")).thenAccept(CurriculumManager::launch);
 	}
 
 }

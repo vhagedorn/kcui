@@ -5,14 +5,20 @@ import io.github.mslxl.ktswing.component.*
 import io.github.mslxl.ktswing.group.SwingComponentBuilderScope
 import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.*
+import me.vadim.ja.kc.render.img.DiagramCreator
 import me.vadim.ja.kc.wrapper.Curriculum
 import me.vadim.ja.kc.wrapper.CurriculumManager
+import me.vadim.ja.kc.wrapper.Definition
 import me.vadim.ja.kc.wrapper.Group
+import me.vadim.ja.kc.wrapper.Kanji
 import me.vadim.ja.kc.wrapper.PartOfSpeech
+import me.vadim.ja.kc.wrapper.Pronounciation
 import me.vadim.ja.kc.wrapper.PronounciationType
 import me.vadim.ja.swing.SortedComboBoxModel
 import me.vadim.ja.swing.TransferFocus
 import java.awt.*
+import java.awt.event.KeyEvent
+import java.awt.event.KeyListener
 import java.util.*
 import java.util.function.Consumer
 import javax.swing.*
@@ -22,7 +28,6 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.reflect.KMutableProperty
-import kotlin.reflect.jvm.isAccessible
 
 
 /**
@@ -143,7 +148,6 @@ object KCUI {
 		}
 	}
 
-
 	private fun SwingComponentBuilderScope<Component>.splitPreview(name: String, scope: CanSetLayoutScope<JPanel>.() -> Unit) {
 		panel {
 			gridBagLayout {
@@ -202,105 +206,84 @@ object KCUI {
 	}
 
 	//todo: add scroll wheel if theres too many
-	private fun GridBagLayoutRootScope<*>.resizableInputList(
+	private fun <T> GridBagLayoutRootScope<*>.resizableInputList(
 		frame: JFrame,
 		label: String,
 		property: KMutableProperty<JPanel>,
-		eachRow: CanAddChildrenScope<*>.() -> Unit,
-		scope: GridBagLayoutCellScope<*>.() -> Unit
-															) {
-		property.apply {
-			isAccessible = true
-		}
-		fun createLine() {
-			val list = property.getter.call()
-			list.add(swing<JPanel> {
-				panel {
-					flowLayout(FlowLayout.LEFT) {
-						eachRow()
-					}
-				}
-			}, GridBagConstraints().apply {
-				gridx = 0
-				gridy = list.componentCount
-				weightx = 1.0
-				weighty = 1.0
-				fill = GridBagConstraints.NONE
-				anchor = GridBagConstraints.NORTHWEST
-			})
-			frame.revalidate()
-		}
-
-		fun deleteLine() {
-			val list = property.getter.call()
-			if (list.componentCount > 1)
-				list.remove(list.componentCount - 1)
-			frame.revalidate()
-		}
-
-		cell {
-			attr {
-				cons {
-					gridx = 0
-					gridy = 0
-					weightx = 1.0
-					weighty = 1.0
-					fill = GridBagConstraints.HORIZONTAL
-					anchor = GridBagConstraints.NORTHWEST
-				}
-			}
-			panel {
-				flowLayout(FlowLayout.LEFT) {
-					label(label) {
-						attr {
-							maximumSize = preferredSize
-						}
-					}
-					panel {
-						flowLayout(FlowLayout.LEFT, 0) {
-							button(KCTheme.getButtonIcon(KCIcon.ADD.primary)) {
-								onAction {
-									createLine()
-								}
-							}
-							button(KCTheme.getButtonIcon(KCIcon.REMOVE.primary)) {
-								onAction {
-									deleteLine()
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		cell {
-			attr {
-				cons {
-					gridx = 1
-					gridy = 0
-					weightx = 1.0
-					weighty = 1.0
-					fill = GridBagConstraints.NONE
-					anchor = GridBagConstraints.NORTHWEST
-				}
-			}
-			scope()
-			createLine()
-		}
-	}
+		eachRow: CanAddChildrenScope<*>.(x: T?) -> Unit,
+		assign: GridBagLayoutCellScope<*>.() -> Unit) = ResizableInputList(this, frame, label, property, eachRow, assign)
 
 	private lateinit var kanjiArea: JTextField
 	private lateinit var curriculumSelector: JComboBox<Curriculum>
 	private lateinit var groupSelector: JComboBox<Group>
 
 	private lateinit var pronounciations: JPanel
+	private lateinit var pronList: ResizableInputList<Pronounciation?>
 	private lateinit var grammar: JPanel
+	private lateinit var gList: ResizableInputList<PartOfSpeech?>
 	private lateinit var definitions: JPanel
+	private lateinit var defList: ResizableInputList<Definition?>
+
 	private lateinit var strokeOrder: JCheckBox
 	private lateinit var strokePanel: JPanel
+	private lateinit var drawFull: JCheckBox
 	private lateinit var orientation: ButtonGroup
 	private lateinit var wrapAfter: JSpinner
+
+	fun populateKanji(k: Kanji) {
+		//pronounciations
+		pronList.clear()
+		for (pron in k.getPronounciations())
+			pronList.createLine(pron)
+
+		//grammar
+		gList.clear()
+		for (pos in k.getPartsOfSpeech())
+			gList.createLine(pos)
+
+		//definitions
+		defList.clear()
+		for (def in k.getDefinitions())
+			defList.createLine(def)
+	}
+
+	fun gatherKanji(frame: JFrame? = null): Kanji {
+		kanjiArea.removeWhitespace()
+		val k = CurriculumManager.cringe.createKanji(kanjiArea.text, groupSelector.selectedItem as Group)
+		//pronounciations
+		for (elem in pronounciations.components) {
+			elem as JPanel
+
+			val input = elem.components.filterIsInstance<JTextField>().first().apply { removeWhitespace() }
+			val type = elem.components.filterIsInstance<JComboBox<PronounciationType>>().first()
+
+			k.addPronounciation(type.selectedItem as PronounciationType, input.text)
+		}
+		//grammar
+		val pos = mutableListOf<PartOfSpeech>()
+		for (elem in grammar.components) {
+			elem as JPanel
+
+			val info = elem.components[0]!! as JComboBox<PartOfSpeech.Info>
+			val type = elem.components[1]!! as JComboBox<PartOfSpeech>
+
+			pos += (info.selectedItem as PartOfSpeech.Info?)?.partOfSpeech ?: (type.selectedItem as PartOfSpeech) // choose more specific PoS if applicable
+		}
+		pos.distinctBy { it.name }.sortedBy { it.priority }.forEach { k.addPartOfSpeech(it) }
+		//definitions
+		for (elem in definitions.components) {
+			elem as JPanel
+
+			val input = elem.components.first() as JTextField
+			k.addDefinition(input.text)
+		}
+
+		frame?.revalidate()
+
+		return k
+	}
+
+	fun gatherOptions(): Int = DiagramCreator(null, 200, drawFull.isSelected, wrapAfter.value as Int, orientation.selection.actionCommand).toBitmask()
 
 	@Suppress("UNCHECKED_CAST")
 	private fun TabbedPaneScope.editTab(frame: JFrame) {
@@ -343,6 +326,15 @@ object KCUI {
 								kanjiArea = textField {
 									attr {
 										font = KCTheme.JP_FONT
+										addKeyListener(object: KeyListener {
+											override fun keyTyped(e: KeyEvent) {
+												CurriculumManager.cringe.cacheImgs(gatherKanji(frame))
+											}
+
+											override fun keyPressed(e: KeyEvent) {}
+
+											override fun keyReleased(e: KeyEvent) {}
+										})
 									}
 								}
 							}
@@ -352,14 +344,18 @@ object KCUI {
 					row(2) {
 						panel {
 							gridBagLayout {
-								resizableInputList(frame, "Pronounciations", KCUI::pronounciations, {
+								pronList = resizableInputList<Pronounciation?>(frame, "Pronounciations", KCUI::pronounciations, {
 									textField {
 										attr {
 											columns = 10
 											font = KCTheme.JP_FONT
+											text = it?.value
 										}
 									}
 									comboBox(enumValues<PronounciationType>().toList()) {
+										attr {
+											selectedItem = it?.type ?: PronounciationType.UNKNOWN
+										}
 									}
 								}) {
 									pronounciations = panel {
@@ -373,7 +369,7 @@ object KCUI {
 					row(3) {
 						panel {
 							gridBagLayout {
-								resizableInputList(frame, "Grammar", KCUI::grammar, {
+								gList = resizableInputList(frame, "Grammar", KCUI::grammar, {
 									val info = comboBox<PartOfSpeech.Info>(emptyList()) {
 										attr {
 											isEnabled = false
@@ -381,7 +377,8 @@ object KCUI {
 									}
 									comboBox<PartOfSpeech>(
 										SortedComboBoxModel(CurriculumManager.cringe.partsOfSpeechDistinct().toTypedArray(),
-															Comparator.comparingInt<PartOfSpeech> { it.priority }))
+															Comparator.comparingInt<PartOfSpeech> { it.priority })
+														  )
 									{
 										self.addItemListener {
 											val pos = it.item as PartOfSpeech
@@ -404,7 +401,7 @@ object KCUI {
 					row(4) {
 						panel {
 							gridBagLayout {
-								resizableInputList(frame, "Definitions", KCUI::definitions, {
+								defList = resizableInputList(frame, "Definitions", KCUI::definitions, {
 									textField {
 										attr {
 											columns = 25
@@ -421,40 +418,18 @@ object KCUI {
 					}
 
 					row(5) {
-						button("Apply") {
-							onAction {
-								kanjiArea.removeWhitespace()
-								val k = CurriculumManager.cringe.createKanji(kanjiArea.text, groupSelector.selectedItem as Group)
-								//pronounciations
-								for (elem in pronounciations.components) {
-									elem as JPanel
-
-									val input = elem.components.filterIsInstance<JTextField>().first().apply { removeWhitespace() }
-									val type = elem.components.filterIsInstance<JComboBox<PronounciationType>>().first()
-
-									k.addPronounciation(type.selectedItem as PronounciationType, input.text)
+						panel {
+							flowLayout {
+								button("Save") {
+									onAction {
+										CurriculumManager.cringe.save(gatherKanji(frame))
+									}
 								}
-								//grammar
-								val pos = mutableListOf<PartOfSpeech>()
-								for (elem in grammar.components) {
-									elem as JPanel
-
-									val info = elem.components[0]!! as JComboBox<PartOfSpeech.Info>
-									val type = elem.components[1]!! as JComboBox<PartOfSpeech>
-
-									pos += (info.selectedItem as PartOfSpeech.Info?)?.partOfSpeech ?: (type.selectedItem as PartOfSpeech)
+								button("Export") {
+									onAction {
+										CurriculumManager.cringe.submitAsync(gatherKanji(frame), gatherOptions())
+									}
 								}
-								pos.distinctBy { it.name }.sortedBy { it.priority }.forEach { k.addPartOfSpeech(it) }
-								//definitions
-								for (elem in definitions.components) {
-									elem as JPanel
-
-									val input = elem.components.first() as JTextField
-									k.addDefinition(input.apply { removeWhitespace() }.text)
-								}
-
-								frame.revalidate()
-								CurriculumManager.cringe.submit(k)
 							}
 						}
 					}
@@ -477,21 +452,32 @@ object KCUI {
 										}
 									}
 
-									strokeOrder = checkBox("Show stroke order?", true) {
-										attr {
-											horizontalTextPosition = SwingConstants.LEFT
-										}
-
-										onAction {
-											val enable = self.isSelected
-											fun recurse(component: Container) {
-												for (child in component.components) {
-													if (child is Container)
-														recurse(child)
+									panel {
+										flowLayout(FlowLayout.LEFT) {
+											strokeOrder = checkBox("Show stroke order?", true) {
+												attr {
+													isEnabled = false
+													horizontalTextPosition = SwingConstants.LEFT
 												}
-												component.isEnabled = enable
+
+												onAction {
+													val enable = self.isSelected
+													fun recurse(component: Container) {
+														for (child in component.components) {
+															if (child is Container)
+																recurse(child)
+														}
+														component.isEnabled = enable
+													}
+													recurse(strokePanel)
+												}
 											}
-											recurse(strokePanel)
+
+											button("Apply curriculum defaults") {
+												onAction {
+													TODO("not implemented yet")
+												}
+											}
 										}
 									}
 								}
@@ -513,18 +499,12 @@ object KCUI {
 
 									strokePanel = panel {
 										gridBagLayout {
-											orientation = ButtonGroup()
 											row(0) {
 												panel {
 													flowLayout(FlowLayout.LEFT) {
-														label("Orientation:")
-														radioButton("X", false, orientation) {
+														drawFull = checkBox("Draw full kanji?", true) {
 															attr {
-																horizontalTextPosition = SwingConstants.LEFT
-															}
-														}
-														radioButton("Y", true, orientation) {
-															attr {
+																toolTipText = "Render the whole kanji in the first panel?"
 																horizontalTextPosition = SwingConstants.LEFT
 															}
 														}
@@ -532,7 +512,28 @@ object KCUI {
 												}
 											}
 
+											orientation = ButtonGroup()
 											row(1) {
+												panel {
+													flowLayout(FlowLayout.LEFT) {
+														label("Orientation:")
+														radioButton("X", false, orientation) {
+															attr {
+																actionCommand = DiagramCreator.X
+																horizontalTextPosition = SwingConstants.LEFT
+															}
+														}
+														radioButton("Y", true, orientation) {
+															attr {
+																actionCommand = DiagramCreator.Y
+																horizontalTextPosition = SwingConstants.LEFT
+															}
+														}
+													}
+												}
+											}
+
+											row(2) {
 												panel {
 													flowLayout(FlowLayout.LEFT) {
 														label("DPI:")
@@ -545,7 +546,7 @@ object KCUI {
 												}
 											}
 
-											row(2) {
+											row(3) {
 												panel {
 													flowLayout(FlowLayout.LEFT) {
 														label("Wrap after")

@@ -3,9 +3,7 @@ package me.vadim.ja.kc.db.impl.lib;
 import me.vadim.ja.kc.db.impl.DbEnumAdapter;
 import me.vadim.ja.kc.wrapper.PartOfSpeech;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 /**
  * @author vadim
@@ -15,7 +13,10 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 	private static PartOfSpeech buildPartOfSpeech(ResultSet result, long id) throws SQLException {
 		String name = result.getString(1);
 		String info = result.getString(2);
-		int    prio = result.getInt(3);
+		//wasNull is for primitives, but we'll include it just in case :)
+		//value COALESCE'd to "null" in query statement
+		info = info.equalsIgnoreCase("null") || result.wasNull() ? null : info;
+		int prio = result.getInt(3);
 
 		return PartOfSpeech.builder()
 						   .name(name).info(info).priority(prio).id(id)
@@ -43,7 +44,10 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 		PreparedStatement statement = connection.prepareStatement("insert into GRAMMAR (name, info, priority) VALUES (?, ?, ?)");
 
 		statement.setString(1, obj.name);
-		statement.setString(2, obj.hasInfo() ? obj.info.value : null);
+		if(obj.hasInfo())
+			statement.setString(2, obj.info.value);
+		else
+			statement.setNull(2, Types.STRUCT);
 		statement.setInt(3, obj.getPriority());
 		statement.execute();
 		ResultSet result = statement.getGeneratedKeys();
@@ -60,7 +64,10 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 
 		PreparedStatement statement = connection.prepareStatement("update GRAMMAR SET name=?, info=?, priority=? WHERE p_id=?");
 		statement.setString(1, obj.name);
-		statement.setString(2, obj.hasInfo() ? obj.info.value : null);
+		if(obj.hasInfo())
+			statement.setString(2, obj.info.value);
+		else
+			statement.setNull(2, Types.STRUCT);
 		statement.setInt(3, obj.getPriority());
 		statement.setLong(4, obj.id());
 		statement.execute();
@@ -77,7 +84,7 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 	}
 
 	@Override
-	protected long[] findSimilar(PartOfSpeech obj) throws SQLException {
+	protected long[] implSelect(PartOfSpeech obj) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("select p_id from GRAMMAR where name=? AND priority=? AND " + (obj.hasInfo() ? "info=?" : "info IS NULL"));
 		statement.setString(1, obj.name);
 		statement.setInt(2, obj.getPriority());
@@ -88,8 +95,8 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 	}
 
 	@Override
-	protected PartOfSpeech getByID(long id) throws SQLException {
-		PreparedStatement statement = connection.prepareStatement("select name, info, priority from GRAMMAR where p_id=?");
+	protected PartOfSpeech implSelect(long id) throws SQLException {
+		PreparedStatement statement = connection.prepareStatement("select name, COALESCE(info, 'null'), priority from GRAMMAR where p_id=?");
 		statement.setLong(1, id);
 		ResultSet result = statement.executeQuery();
 
@@ -103,7 +110,7 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 	protected PreparedStatement selectAllQuery(boolean count) throws SQLException {
 		return connection.prepareStatement(count
 										   ? selectCountStatement("GRAMMAR")
-										   : "select name, priority, info, p_id from GRAMMAR");
+										   : "select name, COALESCE(info, 'null'), priority, p_id from GRAMMAR");
 	}
 
 	@Override

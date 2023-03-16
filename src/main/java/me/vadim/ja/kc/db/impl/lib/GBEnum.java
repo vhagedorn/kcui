@@ -68,7 +68,7 @@ class GBEnum extends DbEnumAdapter<Group.Builder> {
 	}
 
 	@Override
-	protected long[] findSimilar(Group.Builder obj) throws SQLException {
+	protected long[] implSelect(Group.Builder obj) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("select g_id from GROUPS where name=? AND c_id=?");
 		statement.setString(1, obj.name);
 		statement.setLong(2, obj.curriculum.id());
@@ -77,7 +77,7 @@ class GBEnum extends DbEnumAdapter<Group.Builder> {
 	}
 
 	@Override
-	protected Group.Builder getByID(long id) throws SQLException {
+	protected Group.Builder implSelect(long id) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("select name, c_id from GROUPS where g_id=?");
 		statement.setLong(1, id);
 		ResultSet result = statement.executeQuery();

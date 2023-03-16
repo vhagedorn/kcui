@@ -34,6 +34,21 @@ public abstract class DbEnumAdapter<I extends Identifiable> extends DbAddonAdapt
 		this.factory = factory;
 	}
 
+	/* actual impls */
+
+	protected abstract void implDelete(long id) throws SQLException;
+	protected abstract void implInsert(I obj) throws SQLException;
+	protected abstract void implUpdate(I obj) throws SQLException;
+	protected abstract long[] implSelect(I obj) throws SQLException;
+	protected abstract I implSelect(long id) throws SQLException;
+
+	/* helper methods for this class */
+
+	protected abstract I withId(I obj, long newId);
+	protected abstract boolean hasId(I obj);
+	protected abstract PreparedStatement selectAllQuery(boolean count) throws SQLException;
+	protected abstract I selectAllBuild(ResultSet result) throws SQLException;
+
 	@Override
 	public final void delete(long id) {
 		try {
@@ -43,10 +58,8 @@ public abstract class DbEnumAdapter<I extends Identifiable> extends DbAddonAdapt
 		}
 	}
 
-	protected abstract void implDelete(long id) throws SQLException;
-
 	@Override
-	public final void insert(I obj) {
+	public final void create(I obj) {
 		try {
 			implInsert(obj);
 		} catch (SQLException e) {
@@ -54,23 +67,10 @@ public abstract class DbEnumAdapter<I extends Identifiable> extends DbAddonAdapt
 		}
 	}
 
-	protected abstract void implInsert(I obj) throws SQLException;
-
 	@Override
-	public final void update(I obj) {
-		try {
-			implUpdate(obj);
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected abstract void implUpdate(I obj) throws SQLException;
-
-	@Override
-	public void upsert(I obj) {
+	public void update(I obj) {
 		long   id  = hasId(obj) ? obj.id() : -1;
-		long[] ids = query(obj);
+		long[] ids = findSimilar(obj);
 		if (hasId(obj)) { // DELETE other entries
 			for (long l : ids)
 				if (l != id)
@@ -82,41 +82,38 @@ public abstract class DbEnumAdapter<I extends Identifiable> extends DbAddonAdapt
 		} else if (ids.length == 1)
 			id = ids[0];
 
-		if (id == -1) // INSERT new row
-			insert(obj);
-		else // UPDATE existing row
-			update(withId(obj, id)); // use found ID instead
-	}
-
-	protected abstract I withId(I obj, long newId);
-	protected abstract boolean hasId(I obj);
-
-	@NotNull
-	@Override
-	public final long[] query(I obj) {
 		try {
-			return findSimilar(obj);
+			if (id == -1) // INSERT new row
+				implInsert(obj);
+			else // UPDATE existing row
+				implUpdate(withId(obj, id)); // use found ID instead
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	protected abstract long[] findSimilar(I obj) throws SQLException;
-
+	@NotNull
 	@Override
-	public final I query(long id) {
+	public final long[] findSimilar(I obj) {
 		try {
-			return getByID(id);
+			return implSelect(obj);
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	protected abstract I getByID(long id) throws SQLException;
+	@Override
+	public final I select(long id) {
+		try {
+			return implSelect(id);
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	@NotNull
 	@Override
-	public I[] query() {
+	public I[] values() {
 		try {
 			PreparedStatement statement;
 			ResultSet             result;
@@ -139,8 +136,5 @@ public abstract class DbEnumAdapter<I extends Identifiable> extends DbAddonAdapt
 			throw new RuntimeException(e);
 		}
 	}
-
-	protected abstract PreparedStatement selectAllQuery(boolean count) throws SQLException;
-	protected abstract I selectAllBuild(ResultSet result) throws SQLException;
 
 }
