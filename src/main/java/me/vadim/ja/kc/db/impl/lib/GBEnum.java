@@ -53,18 +53,19 @@ class GBEnum extends DbEnumAdapter<Group.Builder> {
 		PreparedStatement statement = connection.prepareStatement("update GROUPS SET name=?, c_id=? WHERE g_id=?");
 		statement.setString(1, obj.name);
 		statement.setLong(2, obj.curriculum.id());
-		statement.setLong(2, obj.id);
+		statement.setLong(3, obj.id);
 		statement.execute();
 	}
 
-	@Override
-	protected Group.Builder withId(Group.Builder obj, long newId) {
-		return obj.id(newId);
-	}
 
 	@Override
 	protected boolean hasId(Group.Builder obj) {
 		return obj.id != -1;
+	}
+
+	@Override
+	protected void setId(Group.Builder obj, long id) {
+		obj.id(id);
 	}
 
 	@Override

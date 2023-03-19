@@ -29,7 +29,7 @@ class PoSMultimap extends DbMultimapAdapter<Kanji, PartOfSpeech> {
 
 	@Override
 	protected List<PartOfSpeech> query(Kanji key) throws SQLException {
-		if(!key.isIdSet())
+		if(!key.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("select p_id from PARTS_OF_SPEECH where id=?");
@@ -50,7 +50,7 @@ class PoSMultimap extends DbMultimapAdapter<Kanji, PartOfSpeech> {
 
 	@Override
 	protected void delete(Kanji key) throws SQLException {
-		if(!key.isIdSet())
+		if(!key.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("delete from PARTS_OF_SPEECH where id=?");
@@ -60,7 +60,7 @@ class PoSMultimap extends DbMultimapAdapter<Kanji, PartOfSpeech> {
 
 	@Override
 	protected void insert(Kanji key, List<PartOfSpeech> values) throws SQLException {
-		if(!key.isIdSet())
+		if(!key.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("insert into PARTS_OF_SPEECH (id, p_id) values (?, ?)");

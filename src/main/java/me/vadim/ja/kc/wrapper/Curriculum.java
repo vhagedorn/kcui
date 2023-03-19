@@ -8,14 +8,34 @@ import java.util.Set;
 /**
  * @author vadim
  */
-public class Curriculum extends IdAdapter {
+public class Curriculum extends IdAdapter implements IdCloneable<Curriculum> {
 
-	public final String name;
+	// all my other types are immutable; however, it
+	// probably would have made sense to make them mutable,
+	// but with this one it was just less troublesome to
+	// do this instead of trying to preserve immutability
+	private String name;
 
 	public final Set<Group> groups = new HashSet<>();
 
 	public Curriculum(String name) {
 		this.name = name;
+	}
+
+	public void rename(String name){
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public Curriculum withId(long id){
+		Curriculum curriculum = new Curriculum(name);
+		curriculum.groups.addAll(this.groups);
+		curriculum.setId(id);
+		return curriculum;
 	}
 
 	public Group createGroup(String name){

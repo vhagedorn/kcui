@@ -1,9 +1,9 @@
-package me.vadim.ja.kc.render.electron;
+package me.vadim.ja.kc.render.impl.electron;
 
 import me.vadim.ja.kc.ResourceAccess;
-import me.vadim.ja.kc.render.ConversionService;
-import me.vadim.ja.kc.render.PrintOptions;
-import me.vadim.ja.kc.render.impl.ServerResourceIdentifier;
+import me.vadim.ja.kc.render.DocConverters;
+import me.vadim.ja.kc.render.impl.PDFConversionService;
+import me.vadim.ja.kc.render.impl.PrintOptions;
 import me.vadim.ja.kc.render.impl.StaticFileServer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.jsoup.nodes.Document;
@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * @author vadim
  */
-public class ElectronPDFConverter implements ConversionService, ResourceAccess {
+public class ElectronPDFConverter implements PDFConversionService, ResourceAccess {
 
 	private final ElectronPDFProxy proxy;
 	private final StaticFileServer server;
@@ -25,11 +25,11 @@ public class ElectronPDFConverter implements ConversionService, ResourceAccess {
 		this.proxy = new ElectronPDFProxy(electronConvertURL);
 		this.worker = worker;
 		try {
-			this.server = new StaticFileServer(port, "/uploads",
-											   new ServerResourceIdentifier("/css", "printing.css", "text/css", "doc/printing.css"));
+			this.server = new StaticFileServer(port, "/uploads");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+		DocConverters.putPrintingCss(server);
 	}
 
 	@Override
@@ -46,8 +46,13 @@ public class ElectronPDFConverter implements ConversionService, ResourceAccess {
 
 	//hehehehaw
 	@Override
-	public CompletableFuture<PDDocument> submitJob(Document html, PrintOptions options) {
+	public CompletableFuture<PDDocument> printJob(Document html, PrintOptions options) {
 		return CompletableFuture.supplyAsync(() -> createPDF(html, options), worker);
 	}
 
+	@Override
+	public void close() {
+		worker.shutdown();
+		server.close();
+	}
 }

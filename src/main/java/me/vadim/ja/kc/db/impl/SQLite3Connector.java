@@ -19,26 +19,26 @@ public class SQLite3Connector implements JDBCConnector {
 		this(new File(file));
 	}
 
-	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public SQLite3Connector(File file) {
+		this.db = file;
+	}
+
+	@SuppressWarnings("ResultOfMethodCallIgnored")
+	@Override
+	public Connection create() throws IOException, SQLException {
 		try {
-			if (!file.exists()) {
-				File parent = file.getParentFile();
+			if (!db.exists()) {
+				File parent = db.getParentFile();
 				if(parent != null)
 					parent.mkdirs();
-				file.createNewFile();
+				db.createNewFile();
 			}
 		} catch (IOException x) {
 			x.printStackTrace();
 		}
-		if (!file.isFile())
-			throw new RuntimeException("Unable to access db file '" + file.getPath() + "'.");
+		if (!db.isFile())
+			throw new RuntimeException("Unable to access db file '" + db.getPath() + "'.");
 
-		this.db = file;
-	}
-
-	@Override
-	public Connection create() throws IOException, SQLException {
 		return DriverManager.getConnection("jdbc:sqlite:" + db.getPath());
 	}
 }

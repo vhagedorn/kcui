@@ -52,14 +52,14 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 		statement.execute();
 		ResultSet result = statement.getGeneratedKeys();
 		if (result.next()) {
-			if (!obj.isIdSet()) // hehe thread safety go brr
+			if (!obj.hasId()) // hehe thread safety go brr
 				obj.setId(result.getLong(1));
 		}
 	}
 
 	@Override
 	protected void implUpdate(PartOfSpeech obj) throws SQLException {
-		if (!obj.isIdSet())
+		if (!obj.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("update GRAMMAR SET name=?, info=?, priority=? WHERE p_id=?");
@@ -74,13 +74,13 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 	}
 
 	@Override
-	protected PartOfSpeech withId(PartOfSpeech obj, long newId) {
-		return obj.copy().id(newId).build();
+	protected boolean hasId(PartOfSpeech obj) {
+		return obj.hasId();
 	}
 
 	@Override
-	protected boolean hasId(PartOfSpeech obj) {
-		return obj.isIdSet();
+	protected void setId(PartOfSpeech obj, long id) {
+		obj.setId(id);
 	}
 
 	@Override

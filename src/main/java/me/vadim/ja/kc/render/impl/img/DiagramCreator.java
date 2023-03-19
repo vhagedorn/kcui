@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.render.img;
+package me.vadim.ja.kc.render.impl.img;
 
 import java.io.BufferedReader;
 import java.io.IOException;

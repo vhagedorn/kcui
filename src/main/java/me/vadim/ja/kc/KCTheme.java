@@ -9,8 +9,8 @@ import java.io.InputStream;
  */
 public final class KCTheme {
 
-	public static Icon getButtonIcon(Texturable icon){
-		return icon.withSize(20, 20).asIcon();
+	public static Icon getButtonIcon(Texture icon){
+		return icon.withSize(22, 22).asIcon();
 	}
 
 	public static final boolean DEFAULT_ICON_INVERT_STATE = true;

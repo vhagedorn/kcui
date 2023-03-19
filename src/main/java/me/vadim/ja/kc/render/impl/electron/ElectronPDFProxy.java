@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.render.electron;
+package me.vadim.ja.kc.render.impl.electron;
 
 import com.google.gson.JsonObject;
 

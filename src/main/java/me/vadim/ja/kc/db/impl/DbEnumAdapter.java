@@ -1,7 +1,7 @@
 package me.vadim.ja.kc.db.impl;
 
 import me.vadim.ja.kc.db.DbEnum;
-import me.vadim.ja.kc.wrapper.Identifiable;
+import me.vadim.ja.kc.wrapper.IdCloneable;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.PreparedStatement;
@@ -14,7 +14,7 @@ import java.util.function.IntFunction;
 /**
  * @author vadim
  */
-public abstract class DbEnumAdapter<I extends Identifiable> extends DbAddonAdapter implements DbEnum<I> {
+public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAdapter implements DbEnum<I> {
 
 	protected static long[] parseKeySet(ResultSet result) throws SQLException {
 		List<Long> longList = new ArrayList<>();
@@ -44,8 +44,8 @@ public abstract class DbEnumAdapter<I extends Identifiable> extends DbAddonAdapt
 
 	/* helper methods for this class */
 
-	protected abstract I withId(I obj, long newId);
 	protected abstract boolean hasId(I obj);
+	protected abstract void setId(I obj, long id);
 	protected abstract PreparedStatement selectAllQuery(boolean count) throws SQLException;
 	protected abstract I selectAllBuild(ResultSet result) throws SQLException;
 
@@ -85,8 +85,11 @@ public abstract class DbEnumAdapter<I extends Identifiable> extends DbAddonAdapt
 		try {
 			if (id == -1) // INSERT new row
 				implInsert(obj);
-			else // UPDATE existing row
-				implUpdate(withId(obj, id)); // use found ID instead
+			else {// UPDATE existing row
+				if(!hasId(obj)) // using withId will not fix original object's id. plus I don't want to modify withId to NOT return a clone...
+					setId(obj, id);
+				implUpdate(obj.withId(id)); // use found ID instead
+			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}

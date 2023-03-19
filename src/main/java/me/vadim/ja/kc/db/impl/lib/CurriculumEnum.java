@@ -4,24 +4,39 @@ import me.vadim.ja.kc.db.DbEnum;
 import me.vadim.ja.kc.db.impl.DbEnumAdapter;
 import me.vadim.ja.kc.wrapper.Curriculum;
 import me.vadim.ja.kc.wrapper.Group;
+import me.vadim.ja.kc.wrapper.IdAdapter;
+import me.vadim.ja.kc.wrapper.Identifiable;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author vadim
  */
 class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 
-	private /*static*/ Curriculum create(String name, long id){
+	private /*static*/ Curriculum create(String name, long id) {
 		Curriculum c = new Curriculum(name);
 		c.setId(id);
 		for (Group.Builder group : groups.values())
-			if(group.c_id == id)
+			if (group.c_id == id)
 				c.groups.add(group.curriculum(c).build());
 
 		return c;
+	}
+
+	private void clearGroups(Curriculum curriculum) {
+		if(!curriculum.hasId()) return;
+		List<Long> ids = curriculum.groups.stream().filter(IdAdapter::hasId).map(Identifiable::id).collect(Collectors.toList());
+		List<Long> buf = new ArrayList<>();
+		for (Group.Builder val : groups.values()) // filter groups in the db which weren't passed to this method (they need to be deleted)
+			if (!ids.contains(val.id) && val.c_id == curriculum.id())
+				buf.add(val.id);
+		buf.forEach(groups::delete);
 	}
 
 	private final DbEnum<Group.Builder> groups;
@@ -40,7 +55,7 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 	@Override
 	protected void implDelete(long id) throws SQLException {
 		Curriculum q = select(id);
-		if(q != null)
+		if (q != null)
 			q.groups.stream().map(Group::id).forEach(groups::delete);
 
 		PreparedStatement statement = connection.prepareStatement("delete from CURRICULUMS where c_id=?");
@@ -52,59 +67,61 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 	protected void implInsert(Curriculum obj) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("insert into CURRICULUMS (name) VALUES (?)");
 
-		statement.setString(1, obj.name);
+		statement.setString(1, obj.getName());
 		statement.execute();
 		ResultSet result = statement.getGeneratedKeys();
 		if (result.next()) {
-			if (!obj.isIdSet()) // hehe thread safety go brr
+			if (!obj.hasId()) // hehe thread safety go brr
 				obj.setId(result.getLong(1));
 		}
 
 		for (Group group : obj.groups) {
 			Group.Builder cp = group.copy();
-			groups.create(cp);
-			if(!group.isIdSet())
+			clearGroups(obj);
+			groups.update(cp);
+			if (!group.hasId())
 				group.setId(cp.id);
 		}
 	}
 
 	@Override
 	protected void implUpdate(Curriculum obj) throws SQLException {
-		if (!obj.isIdSet())
+		if (!obj.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("update CURRICULUMS SET name=? WHERE c_id=?");
-		statement.setString(1, obj.name);
+		statement.setString(1, obj.getName());
 		statement.setLong(2, obj.id());
 		statement.execute();
 
 		for (Group group : obj.groups) {
 			Group.Builder cp = group.copy();
-			if(group.isIdSet())
+			if (group.hasId())
 				cp.id(group.id());
 
+			clearGroups(obj);
 			groups.update(cp);
 
-			if(!group.isIdSet())
+			if (!group.hasId())
 				group.setId(cp.id);
 		}
 	}
 
 	@Override
-	protected Curriculum withId(Curriculum obj, long newId) {
-		return create(obj.name, newId);
+	protected boolean hasId(Curriculum obj) {
+		return obj.hasId();
 	}
 
 	@Override
-	protected boolean hasId(Curriculum obj) {
-		return obj.isIdSet();
+	protected void setId(Curriculum obj, long id) {
+		obj.setId(id);
 	}
 
 	@Override
 	protected long[] implSelect(Curriculum obj) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("select c_id from CURRICULUMS where name=?");
-		statement.setString(1, obj.name);
-		
+		statement.setString(1, obj.getName());
+
 		return parseKeySet(statement.executeQuery());
 	}
 

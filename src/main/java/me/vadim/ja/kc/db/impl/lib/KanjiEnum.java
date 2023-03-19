@@ -43,7 +43,7 @@ class KanjiEnum extends DbEnumAdapter<Kanji> {
 	private final DbMultimap<Kanji, Pronounciation> pronounciations;
 	private final DbMultimap<Kanji, Definition>     definitions;
 
-	public KanjiEnum(DbEnum<Curriculum> curr, DbEnum<PartOfSpeech> pos) {
+	KanjiEnum(DbEnum<Curriculum> curr, DbEnum<PartOfSpeech> pos) {
 		super(Kanji[]::new);
 		this.curriculums     = curr;
 		this.partsOfSpeech   = new PoSMultimap(pos);
@@ -87,7 +87,7 @@ class KanjiEnum extends DbEnumAdapter<Kanji> {
 
 		ResultSet result = statement.getGeneratedKeys();
 		if (result.next()) {
-			if (!obj.isIdSet()) // hehe thread safety go brr
+			if (!obj.hasId()) // hehe thread safety go brr
 				obj.setId(result.getLong(1));
 		}
 
@@ -99,7 +99,7 @@ class KanjiEnum extends DbEnumAdapter<Kanji> {
 
 	@Override
 	protected void implUpdate(Kanji obj) throws SQLException {
-		if (!obj.isIdSet())
+		if (!obj.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("update CARDS set kanji=?, c_id=?, g_id=? where id=?");
@@ -115,14 +115,15 @@ class KanjiEnum extends DbEnumAdapter<Kanji> {
 		definitions.put(obj, obj.definitions);
 	}
 
-	@Override
-	protected Kanji withId(Kanji obj, long newId) {
-		return obj.withId(newId);
-	}
 
 	@Override
 	protected boolean hasId(Kanji obj) {
-		return obj.isIdSet();
+		return obj.hasId();
+	}
+
+	@Override
+	protected void setId(Kanji obj, long id) {
+		obj.setId(id);
 	}
 
 	@Override

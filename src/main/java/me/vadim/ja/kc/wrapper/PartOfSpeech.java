@@ -3,7 +3,7 @@ package me.vadim.ja.kc.wrapper;
 /**
  * @author vadim
  */
-public class PartOfSpeech extends IdAdapter {
+public class PartOfSpeech extends IdAdapter implements IdCloneable<PartOfSpeech> {
 
 	public final String name;
 	public final Info   info;
@@ -34,6 +34,11 @@ public class PartOfSpeech extends IdAdapter {
 
 	public final Builder copy(){
 		return builder().name(name).info(info).priority(priority);
+	}
+
+	@Override
+	public PartOfSpeech withId(long id) {
+		return copy().id(id).build();
 	}
 
 	public static Builder builder() { return new Builder(); }

@@ -4,6 +4,9 @@ package me.vadim.ja.kc.wrapper;
  * @author vadim
  */
 public class Pronounciation {
+
+	public static final Pronounciation EMPTY = new Pronounciation(PronounciationType.UNKNOWN, null, 0);
+
 	public final String             value;
 	public final PronounciationType type;
 	private final int                index;

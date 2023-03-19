@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.render.factory;
+package me.vadim.ja.kc.render.impl.factory;
 
 import me.vadim.ja.kc.ResourceAccess;
 import me.vadim.ja.kc.wrapper.Definition;
@@ -8,15 +8,17 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.nio.charset.StandardCharsets;
+//todo: catch IllegalStateExceptions and show popup dialog
 
 /**
  * @author vadim
  */
 public class Generator implements ResourceAccess {
 
-	public static final String back  = "doc/back.html";
-	public static final String front = "doc/front.html";
+	@SuppressWarnings("StaticNonFinalField")
+	public static String
+			back  = null,
+			front = null;
 
 	public final Kanji kanji;
 
@@ -28,7 +30,7 @@ public class Generator implements ResourceAccess {
 
 	public Document createFront() {
 		try {
-			Document doc     = Jsoup.parse(loadResource(front), StandardCharsets.UTF_8.name(), "");
+			Document doc     = Jsoup.parse(front);
 			Element  element = doc.getElementById("kanji");
 			if (element == null)
 				throw new IllegalStateException();
@@ -42,7 +44,7 @@ public class Generator implements ResourceAccess {
 
 	public Document createBack(String[] base64) {
 		try {
-			Document doc = Jsoup.parse(loadResource(back), StandardCharsets.UTF_8.name(), "");
+			Document doc = Jsoup.parse(back);
 			Element  element;
 
 			//stroke diagrams

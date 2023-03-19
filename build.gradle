@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'me.vadim'
-version '1.0.0'
+version '1.0.1'
 
 def name = project.name + '.jar'
 def main = group + '.ja.Main'
@@ -36,11 +36,12 @@ dependencies {
     implementation 'org.xerial:sqlite-jdbc:3.41.0.0'
     implementation 'io.github.fanyong920:jvppeteer:1.1.5'
     implementation 'com.google.guava:guava:31.1-jre'
+    implementation 'org.slf4j:slf4j-nop:2.0.6' // get rid of bullshit warning messages
 }
 
 //generate `version` file to add to jar
 
-ext.genOutputDir = file("$buildDir/generated-resources")
+ext.genOutputDir = file("$buildDir/generated")
 
 tasks.register('generatePropInfo') {
     ext.outputFile = file("$genOutputDir/version")

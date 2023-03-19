@@ -122,4 +122,8 @@ public class InMemoryFileServer implements ResourceAccess {
 		}
 	}
 
+	public void close() {
+		server.stop(5);
+	}
+
 }

@@ -23,7 +23,7 @@ class PronMultimap extends DbMultimapAdapter<Kanji, Pronounciation> {
 
 	@Override
 	protected List<Pronounciation> query(Kanji key) throws SQLException {
-		if(!key.isIdSet())
+		if(!key.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("select value, type, idx from PRONOUNCIATIONS where id=?");
@@ -43,7 +43,7 @@ class PronMultimap extends DbMultimapAdapter<Kanji, Pronounciation> {
 
 	@Override
 	protected void delete(Kanji key) throws SQLException {
-		if(!key.isIdSet())
+		if(!key.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("delete from PRONOUNCIATIONS where id=?");
@@ -53,7 +53,7 @@ class PronMultimap extends DbMultimapAdapter<Kanji, Pronounciation> {
 
 	@Override
 	protected void insert(Kanji key, List<Pronounciation> values) throws SQLException {
-		if(!key.isIdSet())
+		if(!key.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("insert into PRONOUNCIATIONS (id, value, type, idx) values (?, ?, ?, ?)");

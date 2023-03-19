@@ -1,15 +1,11 @@
 package me.vadim.ja.kc;
 
-import org.imgscalr.Scalr;
+import me.vadim.ja.kc.impl.Icons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.LookupOp;
-import java.awt.image.LookupTable;
 import java.io.IOException;
 import java.net.URL;
 
@@ -29,6 +25,10 @@ public enum KCIcon {
 	LIST("list.png", "list2.png"),
 	SETTINGS("settings.png", "settings2.png"),
 	BLOCK("block.png", false),
+	BACK("back.png"),
+	LEFT("left.png"),
+	RIGHT("right.png"),
+	PREVIEW_EMPTY("preview_empty.png", false)
 	;
 
 	private final BufferedImage primary, secondary;
@@ -55,49 +55,18 @@ public enum KCIcon {
 	}
 
 	@NotNull
-	public Texturable getPrimary() {
-		return new TexturableImpl(primary);
+	public Texture getPrimary() {
+		return Icons.wrap(primary);
 	}
 
 	@Nullable
-	public Texturable getSecondary(){
-		return secondary == null ? null : new TexturableImpl(secondary);
+	public Texture getSecondary(){
+		return secondary == null ? null : Icons.wrap(secondary);
 	}
 
 	private static void checkResource(Object ref, String name){
 		if(ref == null)
 			throw new IllegalStateException("Could not find resource with name '"+name+"'");
-	}
-
-	private static BufferedImage convertToARGB(BufferedImage image)
-	{
-		BufferedImage newImage = new BufferedImage(
-				image.getWidth(), image.getHeight(),
-				BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = newImage.createGraphics();
-		g.drawImage(image, 0, 0, null);
-		g.dispose();
-		return newImage;
-	}
-
-	private static BufferedImage invert(BufferedImage image){
-		if (image.getType() != BufferedImage.TYPE_INT_ARGB)
-		{
-			image = convertToARGB(image);
-		}
-		LookupTable lookup = new LookupTable(0, 4)
-		{
-			@Override
-			public int[] lookupPixel(int[] src, int[] dest)
-			{
-				dest[0] = (int)(255-src[0]);
-				dest[1] = (int)(255-src[1]);
-				dest[2] = (int)(255-src[2]);
-				return dest;
-			}
-		};
-		LookupOp op = new LookupOp(lookup, new RenderingHints(null));
-		return op.filter(image, null);
 	}
 
 	private static BufferedImage loadImageResource(String name, boolean invert) {
@@ -112,43 +81,7 @@ public enum KCIcon {
 		}
 		if (image == null)
 			return null;
-		return invert ? invert(image) : image;
-	}
-
-	private static class TexturableImpl implements Texturable {
-		private final BufferedImage original;
-		private BufferedImage cached;
-
-		TexturableImpl(BufferedImage original) {
-			this.original = cached = original;
-		}
-
-		@Override
-		public Image unedited() {
-			return original;
-		}
-
-		@Override
-		public Texturable invert() {
-			cached = KCIcon.invert(cached);
-			return this;
-		}
-
-		@Override
-		public Texturable withSize(int w, int h) {
-			cached = Scalr.resize(original, Scalr.Method.BALANCED, Scalr.Mode.FIT_EXACT, w, h);
-			return this;
-		}
-
-		@Override
-		public Image asImage() {
-			return cached;
-		}
-
-		@Override
-		public Icon asIcon() {
-			return new ImageIcon(cached);
-		}
+		return invert ? Icons.invert(image) : image;
 	}
 
 }

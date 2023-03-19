@@ -18,7 +18,7 @@ public abstract class IdAdapter implements Identifiable {
 		this.isIdSet = true;
 	}
 
-	public final boolean isIdSet(){
+	public final boolean hasId(){
 		return this.isIdSet;
 	}
 
@@ -42,4 +42,12 @@ public abstract class IdAdapter implements Identifiable {
 		return getId();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		try {
+			if (obj instanceof Identifiable)
+				return id == ((Identifiable) obj).id();
+		} catch (RuntimeException ignored) {}
+		return super.equals(obj);
+	}
 }

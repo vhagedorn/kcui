@@ -15,13 +15,23 @@ public interface PageSize {
 	String name();
 
 	/**
-	 * @return width of the page in inches
+	 * @return unit that measures the {@link #width() width} and {@link #height() height}
+	 */
+	String unit();
+
+	/**
+	 * @return width of the page in {@link #unit() units}
 	 */
 	float width();
 
 	/**
-	 * @return height of the page in inches
+	 * @return height of the page in {@link #unit() units}
 	 */
 	float height();
+
+	/**
+	 * Convert this {@link PageSize} to another unit.
+	 */
+	PageSize withUnit(String unit);
 
 }

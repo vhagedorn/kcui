@@ -1,32 +1,39 @@
 package me.vadim.ja.kc.render;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.jsoup.nodes.Document;
+import me.vadim.ja.kc.render.impl.PDFConversionService;
+import me.vadim.ja.kc.render.impl.PreviewConversionService;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Defines a service that can convert {@link Document HTML documents} to {@link PDDocument PDFs}.
+ * Defines a service that can convert {@link I input files} to {@link O output files}.
+ * @see PDFConversionService
+ * @see PreviewConversionService
  * @author vadim
  */
-public interface ConversionService {
+public interface ConversionService<I, O> {
 
 	/**
-	 * Convert an {@link Document HTML document} to a {@link PDDocument PDF}.
+	 * Convert an {@link I} source to an {@link O} output.
 	 * <p><b>This is a <i>blocking</i> method.</b>
-	 * @param html the {@link Document HTML document}
-	 * @param options {@link PrintOptions settings} pertaining to the print job
-	 * @return the rendered {@link PDDocument PDF}
+	 * @param input the {@link I input}
+	 * @param options {@link ConvertOptions settings} pertaining to the job
+	 * @return the converted {@link O output}
 	 */
-	PDDocument createPDF(Document html, PrintOptions options);
+	O convert(I input, ConvertOptions options);
 
 	/**
-	 * Convert an {@link Document HTML document} to a {@link PDDocument PDF}.
+	 * Convert an {@link I} source to an {@link O} output.
 	 * <p><b>This is an <i>asynchronous</i> method.</b>
-	 * @param html the {@link Document HTML document}
-	 * @param options {@link PrintOptions settings} pertaining to the print job
-	 * @return a {@link CompletableFuture promise} that will return the rendered {@link PDDocument PDF}
+	 * @param input the {@link I input}
+	 * @param options {@link ConvertOptions settings} pertaining to the job
+	 * @return a {@link CompletableFuture promise} that will return the converted {@link O output}
 	 */
-	CompletableFuture<PDDocument> submitJob(Document html, PrintOptions options);
+	CompletableFuture<O> submitJob(I input, ConvertOptions options);
+
+	/**
+	 * End this {@link ConversionService}.
+	 */
+	void close();
 
 }

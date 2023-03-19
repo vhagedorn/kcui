@@ -2,7 +2,7 @@ package me.vadim.ja.kc.db.impl.blob;
 
 import me.vadim.ja.kc.db.DbMultimap;
 import me.vadim.ja.kc.db.impl.Sqlite3Database;
-import me.vadim.ja.kc.render.img.DiagramCreator;
+import me.vadim.ja.kc.render.impl.img.DiagramCreator;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
@@ -15,6 +15,7 @@ import java.util.List;
 public final class BlobCache extends Sqlite3Database {
 
 	private final DbMultimap<CachedImage.Key, CachedImage.Value> images;
+	private final Object writeLock = new Object();
 
 	public BlobCache() {
 		super("render.cache");
@@ -28,14 +29,16 @@ public final class BlobCache extends Sqlite3Database {
 	}
 
 	/**
-	 * Cache stroke order diagram.
+	 * Cache stroke order diagram. This method is synchronized on an internal write lock.
 	 *
 	 * @param character  the character which was rendered
 	 * @param opts   the {@link DiagramCreator#toBitmask() render options} used to create the image
 	 * @param base64 the diagram PNG data encoded in base64
 	 */
 	public void insertDiagram(String character, int opts, String base64) {
-		images.put(CachedImage.key(character, opts), List.of(CachedImage.value(base64)));
+		synchronized (writeLock) {
+			images.put(CachedImage.key(character, opts), List.of(CachedImage.value(base64)));
+		}
 	}
 
 	/**

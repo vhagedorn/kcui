@@ -1,6 +1,6 @@
-package me.vadim.ja.kc.render.img;
+package me.vadim.ja.kc.render.impl.img;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import me.vadim.ja.kc.KanjiCardUI;
 import me.vadim.ja.kc.db.impl.blob.BlobCache;
 import me.vadim.ja.kc.wrapper.Kanji;
 
@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -19,7 +18,7 @@ public class StrokeOrderRegistry {
 	public static final int DEFAULT_OPTS = 0;
 
 	private final DiagramCreator  diag;
-	private final ExecutorService worker = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).setNameFormat("stroke diagram renderer %d").build());
+	private final ExecutorService worker = KanjiCardUI.threadPool("Stroke diagram renderer %d");
 
 	private final BlobCache db;
 
@@ -33,7 +32,7 @@ public class StrokeOrderRegistry {
 		int opts = diag.toBitmask();
 
 		db.connect();
-		List<String> imgs = target.value.codePoints().mapToObj(c -> {
+		List<String> imgs = target.value.codePoints().filter(Character::isIdeographic).mapToObj(c -> {
 			String character = Character.toString(c);
 
 			String base64 = db.queryDiagram(character, opts);

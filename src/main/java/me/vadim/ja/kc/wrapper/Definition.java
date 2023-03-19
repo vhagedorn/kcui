@@ -5,6 +5,8 @@ package me.vadim.ja.kc.wrapper;
  */
 public class Definition {
 
+	public static final Definition EMPTY = new Definition(null, 0);
+
 	public final String value;
 	private final int    index;
 

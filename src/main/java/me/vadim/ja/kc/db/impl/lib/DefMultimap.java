@@ -22,7 +22,7 @@ class DefMultimap extends DbMultimapAdapter<Kanji, Definition> {
 
 	@Override
 	protected List<Definition> query(Kanji key) throws SQLException {
-		if(!key.isIdSet())
+		if(!key.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("select value, idx from DEFINITIONS where id=?");
@@ -38,7 +38,7 @@ class DefMultimap extends DbMultimapAdapter<Kanji, Definition> {
 
 	@Override
 	protected void delete(Kanji key) throws SQLException {
-		if(!key.isIdSet())
+		if(!key.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("delete from DEFINITIONS where id=?");
@@ -48,7 +48,7 @@ class DefMultimap extends DbMultimapAdapter<Kanji, Definition> {
 
 	@Override
 	protected void insert(Kanji key, List<Definition> values) throws SQLException {
-		if(!key.isIdSet())
+		if(!key.hasId())
 			throw new IllegalArgumentException("id not set");
 
 		PreparedStatement statement = connection.prepareStatement("insert into DEFINITIONS (id, value, idx) values (?, ?, ?)");

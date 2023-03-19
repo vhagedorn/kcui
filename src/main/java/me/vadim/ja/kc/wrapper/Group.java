@@ -1,5 +1,7 @@
 package me.vadim.ja.kc.wrapper;
 
+import java.util.List;
+
 /**
  * @author vadim
  */
@@ -21,7 +23,12 @@ public class Group extends IdAdapter {
 		return builder().name(name).curriculum(curriculum);
 	}
 
+	public void rename(String name) {
+		copy().name(name).id(id()).build().ensureInCurriculum();
+	}
+
 	public void ensureInCurriculum() {
+		List.copyOf(curriculum.groups).stream().filter(x -> x.hasId() && x.id() == id()).forEach(curriculum.groups::remove); // remove duplicates (rename call)
 		curriculum.groups.add(this);
 	}
 
@@ -30,7 +37,7 @@ public class Group extends IdAdapter {
 		return name;
 	}
 
-	public static final class Builder implements Identifiable {
+	public static final class Builder implements IdCloneable<Builder> {
 		public String     name;
 		public Curriculum curriculum;
 		public  long       c_id = -1;
@@ -56,6 +63,11 @@ public class Group extends IdAdapter {
 		public Builder id(long id) {
 			this.id = id;
 			return this;
+		}
+
+		@Override
+		public Builder withId(long id) {
+			return id(id);
 		}
 
 		@Override
