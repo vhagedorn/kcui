@@ -6,11 +6,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author vadim
  */
 public abstract class DbMultimapAdapter<K extends Identifiable, V> extends DbAddonAdapter implements DbMultimap<K, V> {
+
+	public DbMultimapAdapter() {
+		super();
+	}
+
+	public DbMultimapAdapter(ReentrantLock lock) {
+		super(lock);
+	}
 
 	@NotNull
 	@Override

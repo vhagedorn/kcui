@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 //this never got cleaned up :(
 
@@ -132,7 +133,7 @@ public class CurriculumManager {
 	private void lazy() {
 		if (pipeline == null)
 			pipeline = new FlashcardPipeline(new DiagramCreator("D:\\Programming\\Anaconda3\\Scripts\\kanji.exe", 200, true, 5, DiagramCreator.DOWN),
-//											 PDFConverters.electron("http://127.0.0.1:8081/pdfexport")
+//											 DocConverters.print_electron("http://127.0.0.1:8081/pdfexport"),
 											 DocConverters.print_jvppetteer(),
 											 DocConverters.preview_jvppetteer()
 			);
@@ -190,10 +191,20 @@ public class CurriculumManager {
 		return CompletableFuture.allOf(tasks.toArray(CompletableFuture[]::new))
 								.thenApplyAsync(x -> {
 									List<PDDocument> pdfs = tasks.stream().map(CompletableFuture::join).collect(Collectors.toList());
-									PDDocument[] result = {
-											PDFUtil.mergePDFs(pdfs.toArray(PDDocument[]::new), 0),
-											PDFUtil.mergePDFs(pdfs.toArray(PDDocument[]::new), 1),
-											};
+									PDDocument[] result =
+											Stream.of(PDFUtil.mergePDFs(pdfs.toArray(PDDocument[]::new), 0),
+													  PDFUtil.mergePDFs(pdfs.toArray(PDDocument[]::new), 1))
+												  .map(PDFUtil::export)
+												  .map(bytes -> {
+													  try {
+														  return PDDocument.load(bytes);
+													  } catch (IOException e) {
+														  throw new RuntimeException(e);
+													  }
+												  }).toArray(PDDocument[]::new);
+									// COSDocument or PDDocument stores references to imported pages
+									// preventing me from closing the `pdfs` list
+									// Exporting and then importing them should resolve this issue.
 									PDFUtil.closeSafely(pdfs.toArray(PDDocument[]::new));
 									return result;
 								}, worker);

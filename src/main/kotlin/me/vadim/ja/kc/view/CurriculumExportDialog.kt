@@ -31,9 +31,10 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 
 	private val table: JTable
 
-	override val minSize = Dimension(200, 300)
+	override val minSize = Dimension(350, 350)
 
 	init {
+		defaultCloseOperation = HIDE_ON_CLOSE
 		layout = BorderLayout()
 		add(swing<JPanel> {
 			panel {

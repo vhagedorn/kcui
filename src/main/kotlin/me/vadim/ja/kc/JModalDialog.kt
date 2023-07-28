@@ -11,8 +11,11 @@ abstract class JModalDialog(private val ow: Window) : JDialog(ow, ModalityType.M
 
 	abstract val minSize: Dimension
 
-	fun display() {
+	init {
 		defaultCloseOperation = DISPOSE_ON_CLOSE
+	}
+
+	open fun display() {
 		minimumSize = minSize
 		size = minSize
 		preferredSize = minSize

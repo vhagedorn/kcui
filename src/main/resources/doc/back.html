@@ -36,7 +36,6 @@
 		height: 100%;
 	}
 	.stroke-center {
-/*		width: 200px;*/
 		height: 300px;
 		margin-left: -1px;
 	}
@@ -44,9 +43,7 @@
 
 	/* info */
 	.info {
-/*		width: 100%;*/
 		gap: 1em;
-/*		top: -12em;*/
 		position: relative;
 		display: flex;
 		justify-content: center;
@@ -55,25 +52,32 @@
 	}
 	#left {
 		flex: 1;
-/*		padding-left: 5%;*/
 		text-align: left;
 	}
 	#right {
 		flex: 5;
-/*		width: 200px;*/
 		text-align: left;
 	}
 	.box {
 		display: flex;
 		align-items: flex-start;
 		justify-content: flex-start;
+		flex-direction: row-reverse;
+		/* for vertical rtl wrapping (like you would write by hand) */
+		/*flex-direction: column;*/
+		/*direction: rtl;*/
 		font-size: 16px;
+		flex-wrap: wrap;
 	}
-	.box > div {
-/*		padding-top: 1em;*/
+	div.box {
+		width: 1in;
+		height: auto;
+		/* for vertical rtl wrapping (like you would write by hand) */
+		/*direction: ltr;*/
 	}
-	div.box div:nth-child(3n) { /*wrap every 3rd child*/
-		flex-basis: 100%;
+	div.box > div {
+		flex: 1 0 33.33333%;
+		writing-mode: vertical-rl;
 	}
 	.pron {
 		font-family: Noto Sans JP;
@@ -90,6 +94,7 @@
 	.def {
 		font-size: 12px;
 		font-family: Calibri;
+		inline-size: 35ch;
 	}
 	</style>
 </head>
@@ -102,19 +107,16 @@
 			</div>
 		</div>
 		<div class="info">
-			<div id="left" class="vertical box">
-				<div> <!-- dude what the fuck, why can't flexbox just be sane -->
-<!--					<div><span class="psym" id="symbol">⛛</span><span id="pronounciation" class="pron">こんばん</span></div>-->
-				</div>
-				<div id="pronounciation">
+			<div id="left">
+				<div id="pronounciation" class="box">
 					<div><span class="psym">⛛</span><span class="pron">pronounciations</span></div>
 					<div><span class="psym">⛛</span><span class="pron">go</span></div>
 					<div><span class="psym">⛛</span><span class="pron">here</span></div>
 				</div>
 			</div>
 			<div id="right">
-				<span id="type" class="pos">part of speech</span>
-				<ul class="def" id="definition">
+				<span id="type" class="pos wrap">part of speech</span>
+				<ul class="def wrap" id="definition">
 					<li>a very long definition; with; multiple; options</li>
 					<li>and lines; and this is more text; and what if</li>
 					<li>and more text; and i don't think i will</li>

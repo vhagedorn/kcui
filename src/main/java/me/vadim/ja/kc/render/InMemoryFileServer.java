@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import me.vadim.ja.kc.ResourceAccess;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -12,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -34,7 +36,20 @@ public class InMemoryFileServer implements ResourceAccess {
 		return "http://localhost:" + port; // todo: hostname?
 	}
 
+	public static boolean dump = false;
+
 	public String putResource(String path, ServerResource resource) {
+		if(dump)
+			try {
+				File dumpDir = new File("dump", path);
+				if(!dumpDir.isDirectory())
+					dumpDir.mkdirs();
+				if(dumpDir.isDirectory())
+					Files.write(new File(dumpDir, resource.getName()).toPath(), resource.getSnapshot());
+			} catch (IOException e){
+				e.printStackTrace();
+			}
+
 		String subpath = resource.getName();
 
 		if (subpath.startsWith("/"))

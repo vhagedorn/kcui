@@ -9,11 +9,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author vadim
  */
 class DefMultimap extends DbMultimapAdapter<Kanji, Definition> {
+
+	DefMultimap(ReentrantLock lock) {
+		super(lock);
+	}
 
 	@Override
 	protected void createTables() throws SQLException {
@@ -43,7 +48,7 @@ class DefMultimap extends DbMultimapAdapter<Kanji, Definition> {
 
 		PreparedStatement statement = connection.prepareStatement("delete from DEFINITIONS where id=?");
 		statement.setLong(1, key.id());
-		statement.execute();
+		runLocking(statement::execute);
 	}
 
 	@Override
@@ -59,6 +64,6 @@ class DefMultimap extends DbMultimapAdapter<Kanji, Definition> {
 			statement.setInt(3, def.getIndex());
 			statement.addBatch();
 		}
-		statement.executeBatch();
+		runLocking(statement::executeBatch);
 	}
 }

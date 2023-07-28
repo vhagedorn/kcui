@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -41,9 +42,9 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 
 	private final DbEnum<Group.Builder> groups;
 
-	CurriculumEnum() {
-		super(Curriculum[]::new);
-		this.groups = new GBEnum();
+	CurriculumEnum(ReentrantLock lock) {
+		super(lock, Curriculum[]::new);
+		this.groups = new GBEnum(lock);
 	}
 
 	@Override
@@ -60,7 +61,7 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 
 		PreparedStatement statement = connection.prepareStatement("delete from CURRICULUMS where c_id=?");
 		statement.setLong(1, id);
-		statement.execute();
+		runLocking(statement::execute);
 	}
 
 	@Override
@@ -68,7 +69,7 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 		PreparedStatement statement = connection.prepareStatement("insert into CURRICULUMS (name) VALUES (?)");
 
 		statement.setString(1, obj.getName());
-		statement.execute();
+		runLocking(statement::execute);
 		ResultSet result = statement.getGeneratedKeys();
 		if (result.next()) {
 			if (!obj.hasId()) // hehe thread safety go brr
@@ -92,7 +93,7 @@ class CurriculumEnum extends DbEnumAdapter<Curriculum> {
 		PreparedStatement statement = connection.prepareStatement("update CURRICULUMS SET name=? WHERE c_id=?");
 		statement.setString(1, obj.getName());
 		statement.setLong(2, obj.id());
-		statement.execute();
+		runLocking(statement::execute);
 
 		for (Group group : obj.groups) {
 			Group.Builder cp = group.copy();

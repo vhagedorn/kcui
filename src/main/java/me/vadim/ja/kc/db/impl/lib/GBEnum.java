@@ -6,6 +6,7 @@ import me.vadim.ja.kc.wrapper.Group;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author vadim
@@ -16,8 +17,8 @@ class GBEnum extends DbEnumAdapter<Group.Builder> {
 		return Group.builder().name(result.getString(1)).curriculum(result.getLong(2)).id(id);
 	}
 
-	GBEnum() {
-		super(Group.Builder[]::new);
+	GBEnum(ReentrantLock lock) {
+		super(lock, Group.Builder[]::new);
 	}
 
 	@Override
@@ -29,7 +30,7 @@ class GBEnum extends DbEnumAdapter<Group.Builder> {
 	protected void implDelete(long id) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("delete from GROUPS where g_id=?");
 		statement.setLong(1, id);
-		statement.execute();
+		runLocking(statement::execute);
 	}
 
 	@Override
@@ -38,7 +39,7 @@ class GBEnum extends DbEnumAdapter<Group.Builder> {
 
 		statement.setString(1, obj.name);
 		statement.setLong(2, obj.curriculum.id());
-		statement.execute();
+		runLocking(statement::execute);
 		ResultSet result = statement.getGeneratedKeys();
 		if (result.next()) {
 			obj.id(result.getLong(1));
@@ -54,7 +55,7 @@ class GBEnum extends DbEnumAdapter<Group.Builder> {
 		statement.setString(1, obj.name);
 		statement.setLong(2, obj.curriculum.id());
 		statement.setLong(3, obj.id);
-		statement.execute();
+		runLocking(statement::execute);
 	}
 
 

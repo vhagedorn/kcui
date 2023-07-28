@@ -10,11 +10,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author vadim
  */
 class PronMultimap extends DbMultimapAdapter<Kanji, Pronounciation> {
+
+	PronMultimap(ReentrantLock lock) {
+		super(lock);
+	}
 
 	@Override
 	protected void createTables() throws SQLException {
@@ -48,7 +53,7 @@ class PronMultimap extends DbMultimapAdapter<Kanji, Pronounciation> {
 
 		PreparedStatement statement = connection.prepareStatement("delete from PRONOUNCIATIONS where id=?");
 		statement.setLong(1, key.id());
-		statement.execute();
+		runLocking(statement::execute);
 	}
 
 	@Override
@@ -65,6 +70,6 @@ class PronMultimap extends DbMultimapAdapter<Kanji, Pronounciation> {
 			statement.setInt(4, pron.getIndex());
 			statement.addBatch();
 		}
-		statement.executeBatch();
+		runLocking(statement::executeBatch);
 	}
 }

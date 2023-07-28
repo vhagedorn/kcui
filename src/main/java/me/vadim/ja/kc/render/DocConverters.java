@@ -85,11 +85,11 @@ public final class DocConverters {
 	}
 
 	public static PDFConversionService print_jvppetteer(){
-		return new JvppetteerPDFConverter(PORT2, worker);
+		return new JvppetteerPDFConverter(PORT, worker);
 	}
 
 	public static PreviewConversionService preview_jvppetteer(){
-		return new JvppetteerPreviewConverter(PORT, worker);
+		return new JvppetteerPreviewConverter(PORT2, worker);
 	}
 
 }

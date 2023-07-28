@@ -5,21 +5,24 @@ import me.vadim.ja.kc.db.impl.Sqlite3Database;
 import me.vadim.ja.kc.wrapper.*;
 
 import java.sql.SQLException;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author vadim
  */
 public final class KanjiLibrary extends Sqlite3Database {
 
+	private final ReentrantLock lock;
 	private final DbEnum<PartOfSpeech> pos;
 	private final DbEnum<Curriculum>   curriculums;
 	private final DbEnum<Kanji>        cards;
 
 	public KanjiLibrary() {
 		super("library.db");
-		pos         = new PoSEnum();
-		curriculums = new CurriculumEnum();
-		cards = new KanjiEnum(curriculums, pos);
+		this.lock = new ReentrantLock();
+		pos         = new PoSEnum(lock);
+		curriculums = new CurriculumEnum(lock);
+		cards = new KanjiEnum(lock, curriculums, pos);
 	}
 
 	@Override

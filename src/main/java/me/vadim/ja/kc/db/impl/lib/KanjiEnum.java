@@ -8,6 +8,7 @@ import me.vadim.ja.kc.wrapper.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author vadim
@@ -31,24 +32,30 @@ class KanjiEnum extends DbEnumAdapter<Kanji> {
 		Kanji kanji = new Kanji(value, group);
 		kanji.setId(id);
 
-		kanji.partsOfSpeech.addAll(partsOfSpeech.get(kanji));
-		kanji.pronounciations.addAll(pronounciations.get(kanji));
-		kanji.definitions.addAll(definitions.get(kanji));
+		lock.lock();
+		try {
+			kanji.partsOfSpeech.addAll(partsOfSpeech.get(kanji));
+			kanji.pronounciations.addAll(pronounciations.get(kanji));
+			kanji.definitions.addAll(definitions.get(kanji));
+		} finally {
+			lock.unlock();
+		}
 
 		return kanji;
 	}
+
 
 	private final DbEnum<Curriculum>                curriculums;
 	private final DbMultimap<Kanji, PartOfSpeech>   partsOfSpeech;
 	private final DbMultimap<Kanji, Pronounciation> pronounciations;
 	private final DbMultimap<Kanji, Definition>     definitions;
 
-	KanjiEnum(DbEnum<Curriculum> curr, DbEnum<PartOfSpeech> pos) {
-		super(Kanji[]::new);
+	KanjiEnum(ReentrantLock lock, DbEnum<Curriculum> curr, DbEnum<PartOfSpeech> pos) {
+		super(lock, Kanji[]::new);
 		this.curriculums     = curr;
-		this.partsOfSpeech   = new PoSMultimap(pos);
-		this.pronounciations = new PronMultimap();
-		this.definitions     = new DefMultimap();
+		this.partsOfSpeech   = new PoSMultimap(lock, pos);
+		this.pronounciations = new PronMultimap(lock);
+		this.definitions     = new DefMultimap(lock);
 	}
 
 	@Override
@@ -60,9 +67,14 @@ class KanjiEnum extends DbEnumAdapter<Kanji> {
 	}
 
 	private void clear(Kanji kanji) {
-		partsOfSpeech.clear(kanji);
-		pronounciations.clear(kanji);
-		definitions.clear(kanji);
+		lock.lock();
+		try {
+			partsOfSpeech.clear(kanji);
+			pronounciations.clear(kanji);
+			definitions.clear(kanji);
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	@Override
@@ -74,7 +86,7 @@ class KanjiEnum extends DbEnumAdapter<Kanji> {
 
 		PreparedStatement statement = connection.prepareStatement("delete from CARDS where id=?");
 		statement.setLong(1, id);
-		statement.execute();
+		runLocking(statement::execute);
 	}
 
 	@Override
@@ -83,7 +95,7 @@ class KanjiEnum extends DbEnumAdapter<Kanji> {
 		statement.setString(1, obj.value);
 		statement.setLong(2, obj.curriculum.id());
 		statement.setLong(3, obj.group.id());
-		statement.execute();
+		runLocking(statement::execute);
 
 		ResultSet result = statement.getGeneratedKeys();
 		if (result.next()) {
@@ -107,7 +119,7 @@ class KanjiEnum extends DbEnumAdapter<Kanji> {
 		statement.setLong(2, obj.curriculum.id());
 		statement.setLong(3, obj.group.id());
 		statement.setLong(4, obj.id());
-		statement.execute();
+		runLocking(statement::execute);
 
 		clear(obj);
 		partsOfSpeech.put(obj, obj.partsOfSpeech);

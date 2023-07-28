@@ -3,6 +3,7 @@ package me.vadim.ja.kc;
 import com.formdev.flatlaf.intellijthemes.FlatOneDarkIJTheme;
 import me.vadim.ja.Application;
 import me.vadim.ja.ApplicationEnvironment;
+import me.vadim.ja.kc.render.InMemoryFileServer;
 
 import javax.swing.*;
 
@@ -21,6 +22,7 @@ public class KanjiCardEnvironment implements ApplicationEnvironment {
 		System.out.print('.');
 		UIManager.put("MenuItemUI", "me.vadim.ja.swing.CustomFlatMenuItemUI"); // custom accelerator text
 		UIManager.put("Button.showMnemonics", true);
+		InMemoryFileServer.dump = false;
 		System.out.println(" done.");
 	}
 

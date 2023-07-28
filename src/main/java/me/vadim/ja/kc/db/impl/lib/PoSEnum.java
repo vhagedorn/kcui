@@ -4,6 +4,7 @@ import me.vadim.ja.kc.db.impl.DbEnumAdapter;
 import me.vadim.ja.kc.wrapper.PartOfSpeech;
 
 import java.sql.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author vadim
@@ -23,8 +24,8 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 						   .build();
 	}
 
-	PoSEnum() {
-		super(PartOfSpeech[]::new);
+	PoSEnum(ReentrantLock lock) {
+		super(lock, PartOfSpeech[]::new);
 	}
 
 	@Override
@@ -36,7 +37,7 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 	protected void implDelete(long id) throws SQLException {
 		PreparedStatement statement = connection.prepareStatement("delete from GRAMMAR where p_id=?");
 		statement.setLong(1, id);
-		statement.execute();
+		runLocking(statement::execute);
 	}
 
 	@Override
@@ -49,7 +50,7 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 		else
 			statement.setNull(2, Types.STRUCT);
 		statement.setInt(3, obj.getPriority());
-		statement.execute();
+		runLocking(statement::execute);
 		ResultSet result = statement.getGeneratedKeys();
 		if (result.next()) {
 			if (!obj.hasId()) // hehe thread safety go brr
@@ -70,7 +71,7 @@ class PoSEnum extends DbEnumAdapter<PartOfSpeech> {
 			statement.setNull(2, Types.STRUCT);
 		statement.setInt(3, obj.getPriority());
 		statement.setLong(4, obj.id());
-		statement.execute();
+		runLocking(statement::execute);
 	}
 
 	@Override

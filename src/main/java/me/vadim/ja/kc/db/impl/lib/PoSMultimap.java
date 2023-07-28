@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author vadim
@@ -18,7 +19,8 @@ class PoSMultimap extends DbMultimapAdapter<Kanji, PartOfSpeech> {
 
 	private final DbEnum<PartOfSpeech> reg;
 
-	PoSMultimap(DbEnum<PartOfSpeech> reg) {
+	PoSMultimap(ReentrantLock lock, DbEnum<PartOfSpeech> reg) {
+		super(lock);
 		this.reg = reg;
 	}
 
@@ -55,7 +57,7 @@ class PoSMultimap extends DbMultimapAdapter<Kanji, PartOfSpeech> {
 
 		PreparedStatement statement = connection.prepareStatement("delete from PARTS_OF_SPEECH where id=?");
 		statement.setLong(1, key.id());
-		statement.execute();
+		runLocking(statement::execute);
 	}
 
 	@Override
@@ -70,6 +72,6 @@ class PoSMultimap extends DbMultimapAdapter<Kanji, PartOfSpeech> {
 			statement.setLong(2, part.id());
 			statement.addBatch();
 		}
-		statement.executeBatch();
+		runLocking(statement::executeBatch);
 	}
 }

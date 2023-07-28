@@ -56,3 +56,8 @@ body, table, td, p, a, li, blockquote {
 .vertical {
 	writing-mode: vertical-rl;
 }
+
+.wrap {
+	overflow-wrap: break-word;
+	hyphens: auto;
+}

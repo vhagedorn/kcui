@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.IntFunction;
 
 /**
@@ -31,6 +32,12 @@ public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAda
 	private final IntFunction<I[]> factory;
 
 	public DbEnumAdapter(IntFunction<I[]> factory) {
+		super();
+		this.factory = factory;
+	}
+
+	public DbEnumAdapter(ReentrantLock lock, IntFunction<I[]> factory) {
+		super(lock);
 		this.factory = factory;
 	}
 
@@ -52,7 +59,7 @@ public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAda
 	@Override
 	public final void delete(long id) {
 		try {
-			implDelete(id);
+			executeLocking(() -> implDelete(id));
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -61,7 +68,7 @@ public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAda
 	@Override
 	public final void create(I obj) {
 		try {
-			implInsert(obj);
+			executeLocking(() -> implInsert(obj));
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -84,11 +91,12 @@ public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAda
 
 		try {
 			if (id == -1) // INSERT new row
-				implInsert(obj);
+				executeLocking(() -> implInsert(obj));
 			else {// UPDATE existing row
 				if(!hasId(obj)) // using withId will not fix original object's id. plus I don't want to modify withId to NOT return a clone...
 					setId(obj, id);
-				implUpdate(obj.withId(id)); // use found ID instead
+				final long _id = id;
+				executeLocking(() -> implUpdate(obj.withId(_id))); // use found ID instead
 			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
