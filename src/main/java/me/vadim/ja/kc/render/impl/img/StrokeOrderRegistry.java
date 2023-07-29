@@ -2,7 +2,6 @@ package me.vadim.ja.kc.render.impl.img;
 
 import me.vadim.ja.kc.KanjiCardUI;
 import me.vadim.ja.kc.db.impl.blob.BlobCache;
-import me.vadim.ja.kc.wrapper.Kanji;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,12 +26,12 @@ public class StrokeOrderRegistry {
 		this.db   = db;
 	}
 
-	public String[] queryDiagrams(Kanji target, int options) {
+	public String[] queryDiagrams(String target, int options) {
 		DiagramCreator diag = options == DEFAULT_OPTS ? this.diag : this.diag.withOptions(options);
 		int opts = diag.toBitmask();
 
 		db.connect();
-		List<String> imgs = target.value.codePoints().filter(Character::isIdeographic).mapToObj(c -> {
+		List<String> imgs = target.codePoints().filter(Character::isIdeographic).mapToObj(c -> {
 			String character = Character.toString(c);
 
 			String base64 = db.queryDiagram(character, opts);
@@ -53,7 +52,7 @@ public class StrokeOrderRegistry {
 		return imgs.toArray(String[]::new);
 	}
 
-	public CompletableFuture<String[]> submitQuery(Kanji target, int options) {
+	public CompletableFuture<String[]> submitQuery(String target, int options) {
 		return CompletableFuture.supplyAsync(() -> queryDiagrams(target, options), worker);
 	}
 

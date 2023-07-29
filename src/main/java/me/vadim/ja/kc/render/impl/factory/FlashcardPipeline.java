@@ -2,12 +2,12 @@ package me.vadim.ja.kc.render.impl.factory;
 
 import me.vadim.ja.kc.KanjiCardUI;
 import me.vadim.ja.kc.db.impl.blob.BlobCache;
+import me.vadim.ja.kc.persist.wrapper.Card;
 import me.vadim.ja.kc.render.impl.PDFConversionService;
 import me.vadim.ja.kc.render.impl.PreviewConversionService;
 import me.vadim.ja.kc.render.impl.PrintOptions;
 import me.vadim.ja.kc.render.impl.img.DiagramCreator;
 import me.vadim.ja.kc.render.impl.img.StrokeOrderRegistry;
-import me.vadim.ja.kc.wrapper.Kanji;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.jsoup.nodes.Document;
 
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  */
 public class FlashcardPipeline {
 
-	private final StrokeOrderRegistry                     sor;
+	private final StrokeOrderRegistry sor;
 	private final PDFConversionService pdf;
 	private final PreviewConversionService png;
 
@@ -34,16 +34,16 @@ public class FlashcardPipeline {
 		this.png = png;
 	}
 
-	public void cacheStrokeDiagrams(Kanji partial) {
-		sor.submitQuery(partial, StrokeOrderRegistry.DEFAULT_OPTS);
+	public void cacheStrokeDiagrams(Card partial) {
+		sor.submitQuery(partial.describeJapanese(), StrokeOrderRegistry.DEFAULT_OPTS);
 	}
 
 	private final ExecutorService worker = KanjiCardUI.threadPool("Card pipeline worker %d");
 
 	@SuppressWarnings("resource")
-	public byte[] createFlashcardPDF(Kanji kanji, int renderOpts) {
+	public byte[] createFlashcardPDF(Card kanji, int renderOpts) {
 		System.out.println(":: Gathering stroke diagrams.");
-		String[] imgs = sor.queryDiagrams(kanji, renderOpts);
+		String[] imgs = sor.queryDiagrams(kanji.describeJapanese(), renderOpts);
 
 		System.out.println(":: Creating HTML pages.");
 		Generator gen   = new Generator(kanji);
@@ -64,8 +64,8 @@ public class FlashcardPipeline {
 		return result;
 	}
 
-	public CompletableFuture<File> queueFlashcardGeneration(Kanji kanji, File target, int renderOpts) {
-		return sor.submitQuery(kanji, renderOpts).thenComposeAsync(imgs -> {
+	public CompletableFuture<File> queueFlashcardGeneration(Card kanji, File target, int renderOpts) {
+		return sor.submitQuery(kanji.describeJapanese(), renderOpts).thenComposeAsync(imgs -> {
 			Generator gen   = new Generator(kanji);
 			Document  front = gen.createFront();
 			Document  back  = gen.createBack(imgs);
@@ -88,9 +88,9 @@ public class FlashcardPipeline {
 		}, worker);
 	}
 
-	public BufferedImage[] createFlashcardPreview(Kanji kanji, int renderOpts) {
+	public BufferedImage[] createFlashcardPreview(Card kanji, int renderOpts) {
 		System.out.println(":: Gathering stroke diagrams.");
-		String[] imgs = sor.queryDiagrams(kanji, renderOpts);
+		String[] imgs = sor.queryDiagrams(kanji.describeJapanese(), renderOpts);
 
 		System.out.println(":: Creating HTML pages.");
 		Generator gen   = new Generator(kanji);
@@ -99,14 +99,14 @@ public class FlashcardPipeline {
 
 		System.out.println(":: Generating previews.");
 		PrintOptions opts = PrintOptions.index();
-		return new BufferedImage[]{
+		return new BufferedImage[] {
 				png.createPreview(front, opts),
 				png.createPreview(back, opts)
 		};
 	}
 
-	public CompletableFuture<BufferedImage[]> queueFlashcardPreview(Kanji kanji, int renderOpts) {
-		return sor.submitQuery(kanji, renderOpts).thenComposeAsync(imgs -> {
+	public CompletableFuture<BufferedImage[]> queueFlashcardPreview(Card kanji, int renderOpts) {
+		return sor.submitQuery(kanji.describeJapanese(), renderOpts).thenComposeAsync(imgs -> {
 			Generator gen   = new Generator(kanji);
 			Document  front = gen.createFront();
 			Document  back  = gen.createBack(imgs);

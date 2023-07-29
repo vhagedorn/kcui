@@ -19,11 +19,11 @@ public class LocationAdapter extends XmlAdapter<String, Location> {
 			throw new IllegalArgumentException(v);
 		if (split.length == 1)
 			if (v.startsWith(Location.DELIM)) // #group
-				return new Location(null, new Grp(split[0]));
+				return new Location(null, new Grp(null, split[0]));
 			else // curriculum
 				return new Location(new Curr(split[0]), null);
 		else // curriculum#group
-			return new Location(new Curr(split[0]), new Grp(split[1]));
+			return new Grp(new Curr(split[0]), split[1]).toLocation();
 	}
 
 	@Override

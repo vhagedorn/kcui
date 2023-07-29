@@ -1,5 +1,6 @@
-package me.vadim.ja.kc.view
+package me.vadim.ja.kc.view.pane
 
+import com.google.common.hash.HashCode
 import io.github.mslxl.ktswing.BasicScope
 import io.github.mslxl.ktswing.CanAddChildrenScope
 import io.github.mslxl.ktswing.attr
@@ -8,8 +9,15 @@ import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.*
 import io.github.mslxl.ktswing.onAction
 import me.vadim.ja.kc.*
+import me.vadim.ja.kc.persist.EnumeratedItem
+import me.vadim.ja.kc.persist.LinguisticElement
+import me.vadim.ja.kc.persist.PartOfSpeech
 import me.vadim.ja.kc.persist.PronounciationType
-import me.vadim.ja.kc.wrapper.*
+import me.vadim.ja.kc.persist.SpokenElement
+import me.vadim.ja.kc.persist.impl.Location
+import me.vadim.ja.kc.persist.wrapper.Card
+import me.vadim.ja.kc.persist.wrapper.Curriculum
+import me.vadim.ja.kc.persist.wrapper.Group
 import me.vadim.ja.swing.SortedComboBoxModel
 import java.awt.*
 import java.awt.event.FocusAdapter
@@ -27,6 +35,7 @@ import kotlin.contracts.contract
  * @author vadim
  */
 class Editor(private val kt: KanjiCardUIKt) : JPanel() {
+
 	@OptIn(ExperimentalContracts::class)
 	private inline fun CanAddChildrenScope<*>.textField(
 		doc: Document? = null,
@@ -88,12 +97,12 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 	private lateinit var curriculumSelector: JComboBox<Curriculum>
 	private lateinit var groupSelector: JComboBox<Group>
 
-	private lateinit var pronounciations: ResizableInputList<Pronounciation?>
+	private lateinit var pronounciations: ResizableInputList<SpokenElement?>
 	private lateinit var grammar: ResizableInputList<PartOfSpeech?>
-	private lateinit var definitions: ResizableInputList<Definition?>
+	private lateinit var definitions: ResizableInputList<LinguisticElement?>
 
 	private val timer = Timer(1000) {
-		if (modified && kanji.hasId()) { // await id initialization from db... besides it's empty upon creation
+		if (modified) { // huh
 			modified = false
 			post()
 		}
@@ -112,7 +121,12 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 	fun save() {
 		modified = true
 		showSaveIndicator = false
-		kt.mgr.save(gather())
+		if(last.code != card.hash() || card.location != last) // if the card has moved, then delete the previous one
+			kt.ctx.delete(last.code, last)
+		val k = gather()
+		card = k
+		last = CardLocation(k.hash(), k.location)
+		kt.ctx.save(k)
 	}
 
 	init {
@@ -165,7 +179,7 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 					row(1) {
 						panel {
 							flowLayout {
-								val curriculums = kt.mgr.curriculums
+								val curriculums = kt.ctx.activeLibrary.curriculums
 								label("Curriculum")
 								curriculumSelector = comboBox(curriculums) {
 									attr {
@@ -206,7 +220,7 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 										addFocusListener(object : FocusAdapter() {
 											override fun focusLost(e: FocusEvent?) {
 												if (needsCaching) {
-													kt.mgr.cacheImgs(gather())
+													kt.ctx.cacheImgs(gather())
 													needsCaching = false
 												}
 											}
@@ -220,12 +234,12 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 					row(3) {
 						panel {
 							gridBagLayout {
-								pronounciations = resizableInputList<Pronounciation?>(frame, "Pronounciations") {
+								pronounciations = resizableInputList<SpokenElement?>(frame, "Pronounciations") {
 									textField {
 										attr {
 											columns = 10
 											font = KCTheme.JP_FONT
-											text = it?.value
+											text = it?.describe()
 										}
 									}
 									comboBox(enumValues<PronounciationType>().toList()) {
@@ -245,9 +259,9 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 						panel {
 							gridBagLayout {
 								grammar = resizableInputList(frame, "Grammar") {
-									val info = comboBox<PartOfSpeech.Info>(kt.mgr.availableInfos(it)) {
+									val variant = comboBox<EnumeratedItem<String>>(it?.variants ?: emptyList()) {
 										attr {
-											selectedItem = it?.info
+											selectedItem = it?.variants?.firstOrNull()
 											isEnabled = selectedItem != null
 											addActionListener {
 												modified = true
@@ -255,22 +269,22 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 										}
 									}
 									comboBox<PartOfSpeech>(
-										SortedComboBoxModel(kt.mgr.partsOfSpeechDistinct().toTypedArray(), Comparator.comparingInt(PartOfSpeech::getPriority)))
+										SortedComboBoxModel(PartOfSpeech.values(), Comparator.comparingInt(PartOfSpeech::ordinal))
+														  )
 									{
 										attr {
-											println(kt.mgr.partsOfSpeechDistinct())
 											selectedItem = it
-											if(it == null) // we cannot have a null row here
+											if (it == null) // we cannot have a null row here
 												selectedIndex = 0
 											addActionListener {
 												modified = true
 											}
 											addItemListener { e ->
 												val pos = e.item as PartOfSpeech
-												info.removeAllItems()
-												for (i in CurriculumManager.cringe.availableInfos(pos))
-													info.addItem(i)
-												info.isEnabled = info.itemCount > 0
+												variant.removeAllItems()
+												for (i in pos.variants)
+													variant.addItem(i)
+												variant.isEnabled = variant.itemCount > 0
 												frame.revalidate()
 											}
 										}
@@ -288,7 +302,7 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 										attr {
 											columns = 25
 											font = KCTheme.JP_FONT
-											text = it?.value
+											text = it?.describe()
 										}
 									}
 								}
@@ -306,7 +320,7 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 								}
 								button("Export") {
 									onAction {
-										kt.mgr.submitAsync(gather(), kt.preview.gather())
+										kt.ctx.submitAsync(gather(), kt.preview.gather())
 									}
 								}
 								button("Preview") {
@@ -328,85 +342,102 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 		kt.postPreview(gather())
 	}
 
-	private lateinit var kanji: Kanji
+	// do not override equals
+	private class CardLocation(val code: HashCode, location: Location) : Location(location.curriculum, location.group)
 
-	fun populate(k: Kanji) {
-		kanji = k
-		kanjiArea.text = k.value
+	private lateinit var card: Card
+	private lateinit var last: CardLocation
+
+	fun populate(k: Card) {
+		card = k
+		last = CardLocation(k.hash(), k.location)
+		kanjiArea.text = k.describeJapanese()
 
 		curriculumSelector.removeAllItems()
-		kt.mgr.curriculums.forEach { curriculumSelector.addItem(it) }
-		curriculumSelector.selectedItem = k.curriculum
+		kt.ctx.activeLibrary.curriculums.forEach { curriculumSelector.addItem(it) }
+		curriculumSelector.selectedItem = k.location.curriculum
 
 		groupSelector.removeAllItems()
-		k.curriculum.groups.forEach { groupSelector.addItem(it) }
-		groupSelector.selectedItem = k.group
-
-		//pronounciations
-		pronounciations.clear()
-		for (pron in k.getPronounciations().apply {
-			if (isEmpty())
-				add(Pronounciation.EMPTY)
-		})
-			pronounciations.createLine(pron)
-
-		//grammar
-		grammar.clear()
-		for (pos in k.getPartsOfSpeech().apply {
-			if (isEmpty())
-				add(kt.mgr.partsOfSpeech()[0])
-		})
-			grammar.createLine(pos)
+		k.location.curriculum.groups.forEach { groupSelector.addItem(it) }
+		groupSelector.selectedItem = k.location.group
 
 		//definitions
 		definitions.clear()
-		for (def in k.getDefinitions().apply {
-			if (isEmpty())
-				add(Definition.EMPTY)
+		for (def in k.english.let {
+			if (it.isEmpty())
+				k.setEnglish("")
+			k.english
 		})
 			definitions.createLine(def)
+
+		//grammar
+		grammar.clear()
+		for (pos in k.grammar.let {
+			if (it.isEmpty())
+				k.setGrammar(PartOfSpeech.NOUN.asLinguistic())
+			k.grammar
+		})
+			grammar.createLine(PartOfSpeech.fromLinguistic(pos))
+
+		//pronounciations
+		pronounciations.clear()
+		for (pron in k.spoken.let {
+			if (it.isEmpty())
+				k.setSpoken(PronounciationType.UNKNOWN.toSpoken(""))
+			k.spoken
+		})
+			pronounciations.createLine(pron)
+
 		frame.revalidate()
 		frame.repaint()
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	fun gather(): Kanji {
+	fun gather(): Card {
 		kanjiArea.removeWhitespace()
-		val k = kanji.copy().value(kanjiArea.text).group(groupSelector.selectedItem as Group).id(kanji.id).build()
+		val k = card
+		k.setJapanese(kanjiArea.text)
+		k.location = Location(curriculumSelector.selectedItem as Curriculum, groupSelector.selectedItem as Group)
+
+		//definitions
+		val def = mutableListOf<String>()
+		for (elem in definitions.components) {
+			elem as JPanel
+
+			val input = elem.components.first() as JTextField
+			def += input.text
+		}
+		k.setEnglish(*def.toTypedArray())
+
+		//grammar
+		val pos = mutableMapOf<PartOfSpeech, LinguisticElement>()
+		for (elem in grammar.components) {
+			elem as JPanel
+
+			val variant = elem.components[0]!! as JComboBox<EnumeratedItem<String>>
+			val part = (elem.components[1]!! as JComboBox<PartOfSpeech>).selectedItem as PartOfSpeech
+
+			// choose more specific PoS if applicable
+			pos[part] = part.asLinguistic((variant.selectedItem as EnumeratedItem<String>?)?.index ?: PartOfSpeech.NO_VARIANT)
+		}
+		k.setGrammar(*pos.keys.distinctBy { it.name }.sortedBy { it.ordinal }.map { pos[it] }.toTypedArray())
+
 		//pronounciations
-		k.pronounciations.clear()
+		val pron = mutableListOf<SpokenElement>()
 		for (elem in pronounciations.components) {
 			elem as JPanel
 
 			val input = elem.components.filterIsInstance<JTextField>().first().apply { removeWhitespace() }
 			val type = elem.components.filterIsInstance<JComboBox<PronounciationType>>().first()
 
-			k.addPronounciation(type.selectedItem as PronounciationType, input.text)
+			pron += (type.selectedItem as PronounciationType).toSpoken(input.text)
 		}
-		//grammar
-		k.partsOfSpeech.clear()
-		val pos = mutableListOf<PartOfSpeech>()
-		for (elem in grammar.components) {
-			elem as JPanel
+		k.setSpoken(*pron.toTypedArray())
 
-			val info = elem.components[0]!! as JComboBox<PartOfSpeech.Info>
-			val type = elem.components[1]!! as JComboBox<PartOfSpeech>
-
-			pos += (info.selectedItem as PartOfSpeech.Info?)?.partOfSpeech ?: (type.selectedItem as PartOfSpeech) // choose more specific PoS if applicable
-		}
-		pos.distinctBy { it.name }.sortedBy { it.priority }.forEach { k.addPartOfSpeech(it) }
-		//definitions
-		k.definitions.clear()
-		for (elem in definitions.components) {
-			elem as JPanel
-
-			val input = elem.components.first() as JTextField
-			k.addDefinition(input.text)
-		}
 		frame.revalidate()
 		frame.repaint()
 
-		kanji = k
+		card = k
 		return k
 	}
 }

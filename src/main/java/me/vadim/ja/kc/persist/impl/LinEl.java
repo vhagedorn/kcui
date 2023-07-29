@@ -27,7 +27,7 @@ abstract class LinEl implements LinguisticElement {
 
 	@Override
 	public int hashCode() {
-		return describe().hashCode();
+		return toString().hashCode();
 	}
 
 }

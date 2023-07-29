@@ -1,6 +1,9 @@
 package me.vadim.ja.kc.persist.impl;
 
+import jakarta.xml.bind.annotation.XmlTransient;
+import me.vadim.ja.kc.persist.wrapper.Curriculum;
 import me.vadim.ja.kc.persist.wrapper.Group;
+import me.vadim.ja.kc.util.Util;
 
 import java.util.Objects;
 
@@ -13,7 +16,11 @@ public class Grp implements Group {
 
 	Grp() {}
 
-	Grp(String name) {
+	@XmlTransient
+	Curr curr;
+
+	Grp(Curr curr, String name) {
+		this.curr = curr;
 		setName(name);
 	}
 
@@ -26,7 +33,17 @@ public class Grp implements Group {
 	public void setName(String name) {
 		if (name == null)
 			throw new NullPointerException("name");
-		this.name = name.replace(Location.DELIM, "");
+		this.name = Util.sanitizeXML(name.replace(Location.DELIM, ""));
+	}
+
+	@Override
+	public Curriculum getCurriculum() {
+		return curr;
+	}
+
+	@Override
+	public Location toLocation() {
+		return new Location(curr, this);
 	}
 
 	@Override
@@ -34,6 +51,11 @@ public class Grp implements Group {
 		if(!(obj instanceof Group)) return false;
 		Group group = (Group) obj;
 		return Objects.equals(name, group.getName());
+	}
+
+	@Override
+	public String toString() {
+		return name;
 	}
 
 }

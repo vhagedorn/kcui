@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.view
+package me.vadim.ja.kc.view.pane
 
 import com.formdev.flatlaf.util.SystemInfo
 import io.github.mslxl.ktswing.attr
@@ -9,19 +9,18 @@ import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.borderLayout
 import io.github.mslxl.ktswing.layout.flowLayout
 import me.vadim.ja.kc.KanjiCardUIKt
-import me.vadim.ja.kc.wrapper.Curriculum
-import me.vadim.ja.kc.wrapper.Group
-import me.vadim.ja.kc.wrapper.Kanji
+import me.vadim.ja.kc.persist.impl.KCFactory
+import me.vadim.ja.kc.persist.impl.Location
+import me.vadim.ja.kc.persist.wrapper.Card
+import me.vadim.ja.kc.persist.wrapper.Curriculum
+import me.vadim.ja.kc.persist.wrapper.Group
+import me.vadim.ja.kc.view.HistoryCtx
 import me.vadim.ja.swing.NaturalOrderComparator
 import me.vadim.ja.swing.SimpleTreeNode
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Toolkit
-import java.awt.event.ActionEvent
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
+import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeWillExpandListener
@@ -99,18 +98,18 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 			"Enter the name of the group:", "New Group",
 			JOptionPane.QUESTION_MESSAGE
 											  ) ?: return
-		kt.mgr.createGroup(curriculum, name)
+		curriculum.addGroup(name)
 		populate(curriculum)
 	}
 
 	private fun newCard(group: Group) {
-		kt.showEditor(kt.mgr.createKanji("", group))
+		kt.showEditor(kt.ctx.activeLibrary.createCard(Location(group.curriculum, group)))
 		populate(group.curriculum)
 	}
 
 	private fun selectAction(comp: Any, edit: Boolean, toggle: Boolean = false) {
 		if (edit) println("EDIT $comp")
-		if (comp !is Kanji) {
+		if (comp !is Card) {
 			val path = tree.selectionPath
 			if (toggle)
 				if (tree.isCollapsed(path) || (path?.lastPathComponent as DefaultMutableTreeNode?)?.isRoot == true) // never collapse root node
@@ -121,31 +120,35 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 			kt.preview.populate()
 		}
 		when (comp) {
-			is Kanji ->
+			is Card       ->
 				if (edit || toggle)
 					kt.showEditor(comp)
 				else
 					kt.postPreview(comp, true)
-			is Group ->
-				if(edit) {
+
+			is Group      ->
+				if (edit) {
 					val name = JOptionPane.showInputDialog(
 						this@CurriculumExplorer,
 						"Enter the name of the group:", "Rename Group",
-						JOptionPane.INFORMATION_MESSAGE) ?: return
-					comp.rename(name)
+						JOptionPane.INFORMATION_MESSAGE
+														  ) ?: return
+					comp.name = name
 					populate(comp.curriculum)
 				}
+
 			is Curriculum ->
-				if(edit) {
+				if (edit) {
 					val name = JOptionPane.showInputDialog(
 						this@CurriculumExplorer,
 						"Enter the name of the curriculum:", "Rename Curriculum",
-						JOptionPane.INFORMATION_MESSAGE) ?: return
-					comp.rename(name)
+						JOptionPane.INFORMATION_MESSAGE
+														  ) ?: return
+					comp.name = name
 					populate(comp)
 				}
 		}
-		kt.mgr.saveCurriculums()
+		kt.ctx.saveLibrary()
 	}
 
 	private fun deleteAction(comp: Any) {
@@ -153,15 +156,16 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 			this,
 			"Are you sure?\n" +
 					"This CANNOT be undone with ${KeyEvent.getModifiersExText(KeyEvent.CTRL_DOWN_MASK)}+Z!",
-			"Confirm deletion " + (if(comp.toString().isBlank()) "" else "of $comp"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)
+			"Confirm deletion " + (if (comp.toString().isBlank()) "" else "of $comp"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
+												)
 
-		println("DELETE $comp ? ${if(resp == JOptionPane.YES_OPTION) "yes" else "no"}")
+		println("DELETE $comp ? ${if (resp == JOptionPane.YES_OPTION) "yes" else "no"}")
 
 		if (resp == JOptionPane.YES_OPTION)
 			when (comp) {
-				is Kanji      -> kt.mgr.delete(comp)
-				is Group      -> kt.mgr.delete(comp)
-				is Curriculum -> kt.mgr.delete(comp)
+				is Card       -> kt.ctx.delete(comp)
+				is Group      -> kt.ctx.delete(comp)
+				is Curriculum -> kt.ctx.delete(comp)
 			}
 		repopulate()
 	}
@@ -175,24 +179,28 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 			override fun keyPressed(e: KeyEvent) {
 				if (e.keyCode == KeyEvent.VK_ENTER && !e.isControlDown && !e.isAltDown)
 					selectAction(selectedObject ?: return, false, toggle = true)
-				if(e.keyCode == DELETE_KEY.keyCode && e.modifiersEx == DELETE_KEY.modifiers)
+				if (e.keyCode == DELETE_KEY.keyCode && e.modifiersEx == DELETE_KEY.modifiers)
 					deleteAction(selectedObject ?: return)
 			}
 		})
-		addTreeWillExpandListener(object: TreeWillExpandListener {
+		addTreeWillExpandListener(object : TreeWillExpandListener {
 			override fun treeWillExpand(event: TreeExpansionEvent) {}
 			override fun treeWillCollapse(event: TreeExpansionEvent) {
-				if((event.path.lastPathComponent as DefaultMutableTreeNode).isRoot)
+				if ((event.path.lastPathComponent as DefaultMutableTreeNode).isRoot)
 					throw ExpandVetoException(event)
 			}
 		})
 	}
 
 	private companion object {
-		private val PLACEHOLDER_CURRICULUM = Curriculum("New...").apply { id = -1 }
+
+		private val PLACEHOLDER_CURRICULUM = KCFactory.newLibrary("").getCurriculum("New...")
+
 		/* Del or CMD+Delete (delete==backspace on MacOS)*/
-		private val DELETE_KEY = KeyStroke.getKeyStroke(if(SystemInfo.isMacOS) KeyEvent.VK_BACK_SPACE else KeyEvent.VK_DELETE,
-														if(SystemInfo.isMacOS) Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx else 0)
+		private val DELETE_KEY = KeyStroke.getKeyStroke(
+			if (SystemInfo.isMacOS) KeyEvent.VK_BACK_SPACE else KeyEvent.VK_DELETE,
+			if (SystemInfo.isMacOS) Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx else 0
+													   )
 	}
 
 	private lateinit var curriculumSelector: JComboBox<Curriculum>
@@ -219,7 +227,7 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 			override fun mouseClicked(e: MouseEvent) { // left click -> action
 				val node = tree.lastSelectedPathComponent as DefaultMutableTreeNode? ?: return
 				if (SwingUtilities.isLeftMouseButton(e))
-					selectAction(node.userObject,node.userObject is Kanji && e.clickCount == 2)
+					selectAction(node.userObject, node.userObject is Card && e.clickCount == 2)
 			}
 
 			override fun mousePressed(e: MouseEvent) { // right click -> context menu
@@ -247,7 +255,7 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 						ctx.edit?.isEnabled = true
 						ctx.edit?.text = when (item.userObject) {
 							is Group, is Curriculum -> "Rename"
-							is Kanji                -> "Edit"
+							is Card                 -> "Edit"
 							else                    -> disable()
 						}
 					} else // not close enough
@@ -268,21 +276,22 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 						panel {
 							flowLayout(FlowLayout.LEADING) {
 								label("Curriculum")
-								curriculumSelector = comboBox(kt.mgr.curriculums.toMutableList().apply { add(PLACEHOLDER_CURRICULUM) }) {
+								curriculumSelector = comboBox(kt.ctx.activeLibrary.curriculums.toMutableList().apply { add(PLACEHOLDER_CURRICULUM) }) {
 									attr {
 										selectedItem = null
 										addActionListener {
 											var selected = self.selectedItem as Curriculum? ?: return@addActionListener
-											if (selected.hasId() && selected.id == PLACEHOLDER_CURRICULUM.id) {
+											if (selected === PLACEHOLDER_CURRICULUM) {
 												val name = JOptionPane.showInputDialog(
 													this@CurriculumExplorer,
 													"Enter the name of the curriculum:", "New Curriculum",
-													JOptionPane.QUESTION_MESSAGE)
-													?: return@addActionListener(run {
+													JOptionPane.QUESTION_MESSAGE
+																					  )
+													?: return@addActionListener (run {
 														selectedItem = null
 														repopulate()
 													})
-												selected = kt.mgr.createCurriculum(name)
+												selected = kt.ctx.activeLibrary.getCurriculum(name)
 												(self.model as MutableComboBoxModel<Curriculum>).insertElementAt(selected, 0)
 											}
 											populate(selected)
@@ -300,23 +309,22 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 		requestFocusInWindow()
 	}
 
-	fun repopulate(){
+	fun repopulate() {
 		populate(curriculumSelector.selectedItem as Curriculum?)
 	}
 
 	fun populate(curriculum: Curriculum?) {
 		val root = SimpleTreeNode(curriculum, NaturalOrderComparator())
-		val nodes = mutableMapOf<Long, SimpleTreeNode>()
+		val nodes = mutableMapOf<Location, SimpleTreeNode>()
 
-		if(curriculum != null) {
+		if (curriculum != null) {
 			for (group in curriculum.groups)
-				nodes[group.id] = SimpleTreeNode(group, NaturalOrderComparator()).also { root.add(it) }
+				nodes[group.toLocation()] = SimpleTreeNode(group, NaturalOrderComparator()).also { root.add(it) }
 
-			for (k in kt.mgr.allKanjiIn(curriculum)) // add all kanji which are in a group that is in the provided curriculum
-				nodes[k.group.id]?.add(SimpleTreeNode(k))
+			for (k in kt.ctx.activeLibrary.getCards(curriculum)) // add all kanji which are in a group that is in the provided curriculum
+				nodes[k.location.group.toLocation()]?.add(SimpleTreeNode(k))
 		}
 
 		tree.model = DefaultTreeModel(root)
 	}
-
 }

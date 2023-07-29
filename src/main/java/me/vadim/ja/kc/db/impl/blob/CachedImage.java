@@ -1,7 +1,7 @@
 package me.vadim.ja.kc.db.impl.blob;
 
+import me.vadim.ja.kc.db.Identifiable;
 import me.vadim.ja.kc.render.impl.img.DiagramCreator;
-import me.vadim.ja.kc.wrapper.Identifiable;
 
 import java.util.Base64;
 

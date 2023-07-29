@@ -36,7 +36,15 @@ public final class JAXBStorage {
 
 	private JAXBStorage() { }
 
-	private static File locationToFile(Location location) {
+	public static File card2file(Card card) {
+		return card2file(card.getLocation(), card.hash());
+	}
+
+	public static File card2file(Location location, HashCode code) {
+		return new File(location2file(location), code + ".xml");
+	}
+
+	private static File location2file(Location location) {
 		if(location.getGroup() != null && location.getCurriculum() == null) // handle floating groups
 			return new File(freeDir, location.getGroup().getName());
 
@@ -52,7 +60,7 @@ public final class JAXBStorage {
 
 	public static Card readCard(Location location, HashCode code) {
 		try {
-			File file = new File(locationToFile(location), code + ".xml");
+			File file = card2file(location, code);
 			if (file.isFile()) {
 				JAXBContext  context = JAXBContext.newInstance(Kard.class);
 				Unmarshaller umar    = context.createUnmarshaller();
@@ -71,7 +79,7 @@ public final class JAXBStorage {
 
 	public static void dumpCard(Card card) {
 		try {
-			File file = new File(locationToFile(card.getLocation()), card.hash() + ".xml");
+			File file = card2file(card);
 			file.getParentFile().mkdirs();
 
 			JAXBContext context = JAXBContext.newInstance(Kard.class);

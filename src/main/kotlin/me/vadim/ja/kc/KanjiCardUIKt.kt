@@ -8,9 +8,16 @@ import io.github.mslxl.ktswing.component.split2Pane
 import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.borderLayoutCenter
 import io.github.mslxl.ktswing.layout.cardLayout
+import me.vadim.ja.kc.persist.LibraryContext
+import me.vadim.ja.kc.persist.impl.LibCtx
+import me.vadim.ja.kc.persist.wrapper.Card
 import me.vadim.ja.kc.view.*
-import me.vadim.ja.kc.wrapper.CurriculumManager
-import me.vadim.ja.kc.wrapper.Kanji
+import me.vadim.ja.kc.view.dialog.About
+import me.vadim.ja.kc.view.dialog.AuthorDialog
+import me.vadim.ja.kc.view.dialog.License
+import me.vadim.ja.kc.view.pane.Editor
+import me.vadim.ja.kc.view.pane.Preview
+import me.vadim.ja.kc.view.pane.CurriculumExplorer
 import java.awt.CardLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -31,9 +38,10 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 		private const val EXPLORER = "Explorer"
 	}
 
-	val mgr: CurriculumManager = CurriculumManager.cringe
+	val ctx: LibraryContext = LibCtx()
 	var license: String by nonce()
 	var version: String by nonce()
+	var author: AuthorDialog by nonce()
 	var toolbar: Toolbar by nonce()
 	var explorer: CurriculumExplorer by nonce()
 	var editor: Editor by nonce()
@@ -42,7 +50,8 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 	private var cardPanel: JPanel by nonce()
 
 	fun populate(): Component {
-		toolbar = Toolbar(this, License(frame, license))
+		author = AuthorDialog(ctx.activeLibrary, this)
+		toolbar = Toolbar(this, License(frame, license), About(frame, version))
 		frame.jMenuBar = toolbar
 //		ui.add(KCUI.tabPane(ui), BorderLayout.CENTER)
 		editor = Editor(this)
@@ -84,19 +93,19 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 	}
 
 
-	private val previewCache: Cache<Kanji, Array<BufferedImage>> = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build()
-	fun postPreview(kanji: Kanji, useCached: Boolean = false) {
+	private val previewCache: Cache<Card, Array<BufferedImage>> = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build()
+	fun postPreview(kanji: Card, useCached: Boolean = false) {
 		val cached = previewCache.getIfPresent(kanji)
 
 		val future =
 			if (cached == null || !useCached)
-				mgr.generatePreview(kanji, preview.gather())
+				ctx.generatePreview(kanji, preview.gather())
 			else
 				CompletableFuture.completedFuture(cached)
 
 		future.thenAccept {
 			previewCache.put(kanji, it)
-			preview.kanji = kanji
+			preview.card = kanji
 			preview.populate(*it)
 		}
 	}
@@ -110,12 +119,17 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 		cardLayout.show(cardPanel, EXPLORER)
 	}
 
-	fun showEditor(kanji: Kanji? = null) {
+	fun showEditor(kanji: Card? = null) {
 		editor.preShow()
 		if (kanji != null)
 			editor.populate(kanji)
 		preview.editable = true
 		cardLayout.show(cardPanel, EDITOR)
+	}
+
+	fun showFirstLaunch() {
+		if(ctx.activeLibrary.author == null)
+			author.display()
 	}
 
 }

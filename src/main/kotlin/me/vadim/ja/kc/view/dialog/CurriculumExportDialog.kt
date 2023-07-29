@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.view
+package me.vadim.ja.kc.view.dialog
 
 import io.github.mslxl.ktswing.component.button
 import io.github.mslxl.ktswing.component.label
@@ -9,18 +9,16 @@ import io.github.mslxl.ktswing.layout.borderLayout
 import io.github.mslxl.ktswing.onAction
 import me.vadim.ja.kc.JModalDialog
 import me.vadim.ja.kc.KanjiCardUIKt
+import me.vadim.ja.kc.persist.wrapper.Curriculum
+import me.vadim.ja.kc.persist.wrapper.Group
 import me.vadim.ja.kc.render.impl.factory.PDFUtil
-import me.vadim.ja.kc.wrapper.Curriculum
-import me.vadim.ja.kc.wrapper.Group
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.io.File
-import javax.swing.JDialog
 import javax.swing.JFileChooser
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import javax.swing.JTable
-import javax.swing.filechooser.FileFilter
 import javax.swing.table.DefaultTableModel
 
 
@@ -39,11 +37,11 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 		add(swing<JPanel> {
 			panel {
 				val dat = curriculum.groups.map { arrayOf(it, java.lang.Boolean.TRUE) }.toTypedArray()
-				val model = object: DefaultTableModel(dat, arrayOf("Group", "Exporting?")) {
+				val model = object : DefaultTableModel(dat, arrayOf("Group", "Exporting?")) {
 					override fun getColumnClass(columnIndex: Int): Class<*> =
-						when(columnIndex) {
-							0 -> java.lang.String::class.java
-							1 -> java.lang.Boolean::class.java
+						when (columnIndex) {
+							0    -> java.lang.String::class.java
+							1    -> java.lang.Boolean::class.java
 							else -> java.lang.Object::class.java
 						}
 				}
@@ -66,13 +64,14 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 							onAction {
 								val groups = mutableListOf<Group>()
 
-								for(i in 0 until table.rowCount)
-									if(table.getValueAt(i, 1) == true)
+								for (i in 0 until table.rowCount)
+									if (table.getValueAt(i, 1) == true)
 										groups.add(table.getValueAt(i, 0) as Group)
 
 
-								val pb = object: JModalDialog(this@CurriculumExportDialog) {
+								val pb = object : JModalDialog(this@CurriculumExportDialog) {
 									override val minSize = Dimension(250, 20)
+
 									init {
 										layout = BorderLayout()
 										val progress = JProgressBar()
@@ -84,7 +83,7 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 									}
 								}
 								pb.display()
-								kt.mgr.export(groups, kt.preview.gather()).thenAccept {
+								kt.ctx.export(groups, kt.preview.gather()).thenAccept {
 									pb.dispose()
 
 									val fc = JFileChooser()
@@ -92,7 +91,7 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 									val resp = fc.showSaveDialog(this@CurriculumExportDialog)
 
 									val names = arrayOf("front", "back")
-									if(resp == JFileChooser.APPROVE_OPTION)
+									if (resp == JFileChooser.APPROVE_OPTION)
 										for (i in it.indices)
 											it[i].save(File(fc.selectedFile, "$curriculum-${names[i]}.pdf"))
 
@@ -107,5 +106,4 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 			}
 		}, BorderLayout.CENTER)
 	}
-
 }

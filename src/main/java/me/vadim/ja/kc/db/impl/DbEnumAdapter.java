@@ -1,7 +1,6 @@
 package me.vadim.ja.kc.db.impl;
 
 import me.vadim.ja.kc.db.DbEnum;
-import me.vadim.ja.kc.wrapper.IdCloneable;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.PreparedStatement;

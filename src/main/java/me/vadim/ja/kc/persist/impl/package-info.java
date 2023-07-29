@@ -5,6 +5,7 @@
 		@XmlJavaTypeAdapter(value = KanjiAdapter.class, type = Kanji.class),
 		@XmlJavaTypeAdapter(value = DefinitionAdapter.class, type = Definition.class),
 		@XmlJavaTypeAdapter(value = GrammarAdapter.class, type = Grammar.class),
+		@XmlJavaTypeAdapter(value = SpeakAdapter.class, type = Speak.class),
 		@XmlJavaTypeAdapter(value = LocationAdapter.class, type = Location.class),
 		@XmlJavaTypeAdapter(value = MultimapAdapter.class, type = ListMultimap.class),
 		@XmlJavaTypeAdapter(value = MapAdapter.class, type = Map.class),

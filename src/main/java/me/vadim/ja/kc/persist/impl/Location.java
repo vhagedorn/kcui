@@ -6,6 +6,8 @@ import me.vadim.ja.kc.persist.wrapper.Curriculum;
 import me.vadim.ja.kc.persist.wrapper.Group;
 import me.vadim.ja.kc.persist.wrapper.Library;
 
+import java.util.Objects;
+
 /**
  * @author vadim
  */
@@ -34,7 +36,10 @@ public class Location {
 	}
 
 	void flatten(Library library) {
-		setCurriculum(library.getCurriculum(curriculum.getName()));
+		if (curriculum != null) {
+			setCurriculum(library.getCurriculum(curriculum.getName()));
+			curriculum.flatten();
+		}
 	}
 
 	public void setCurriculum(Curriculum curriculum) {
@@ -48,12 +53,19 @@ public class Location {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		if(curriculum != null)
+		if (curriculum != null)
 			builder.append(curriculum.getName());
-		if(group != null)
+		if (group != null)
 			builder.append(DELIM).append(group.getName());
 		String result = builder.toString();
 		return result.isEmpty() ? EMPTY : result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof Location)) return false;
+		Location location = (Location) obj;
+		return Objects.equals(curriculum, location.curriculum) && Objects.equals(group, location.group);
 	}
 
 }

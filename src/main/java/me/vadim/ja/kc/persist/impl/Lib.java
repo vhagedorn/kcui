@@ -55,6 +55,16 @@ public class Lib implements Library {
 	}
 
 	@Override
+	public void unlinkCurriculum(Curriculum curriculum) {
+		curriculums.remove(curriculum.getName());
+	}
+
+	@Override
+	public List<Curriculum> getCurriculums() {
+		return new ArrayList<>(curriculums.values());
+	}
+
+	@Override
 	public Card createCard(Location location) {
 		location.flatten(this);
 		Card card = new Kard(location);

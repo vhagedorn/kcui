@@ -15,6 +15,10 @@ public interface Library {
 
 	Curriculum getCurriculum(String name);
 
+	void unlinkCurriculum(Curriculum curriculum);
+
+	List<Curriculum> getCurriculums();
+
 	Card createCard(Location location);
 
 	List<Card> getCards();

@@ -3,7 +3,10 @@ package me.vadim.ja.kc.view
 import me.vadim.ja.kc.KCIcon
 import me.vadim.ja.kc.KCTheme
 import me.vadim.ja.kc.KanjiCardUIKt
-import me.vadim.ja.kc.wrapper.Curriculum
+import me.vadim.ja.kc.persist.wrapper.Curriculum
+import me.vadim.ja.kc.view.dialog.About
+import me.vadim.ja.kc.view.dialog.CurriculumExportDialog
+import me.vadim.ja.kc.view.dialog.License
 import java.awt.Container
 import java.awt.Toolkit
 import java.awt.event.ActionEvent
@@ -15,7 +18,7 @@ import javax.swing.border.TitledBorder
 /**
  * @author vadim
  */
-class Toolbar(private val kt: KanjiCardUIKt, license: License) : JMenuBar() {
+class Toolbar(private val kt: KanjiCardUIKt, private val license: License, private val about: About) : JMenuBar() {
 
 	private val frame = kt.frame as JFrame
 
@@ -52,6 +55,7 @@ class Toolbar(private val kt: KanjiCardUIKt, license: License) : JMenuBar() {
 
 	//toggleable atomic boolean
 	private class Mock {
+
 		private val count = AtomicLong(0)
 		fun respond(): Boolean {
 			return count.getAndIncrement() % 2 == 0L
@@ -102,11 +106,23 @@ class Toolbar(private val kt: KanjiCardUIKt, license: License) : JMenuBar() {
 						mnemonic = KeyEvent.VK_B
 					}
 					onAction {
-						val chosen = JOptionPane.showInputDialog(frame, "Choose a curriculum:", "Export",
-													JOptionPane.PLAIN_MESSAGE, null, kt.mgr.curriculums.toTypedArray(), null) as Curriculum? ?: return@onAction
+						val chosen = JOptionPane.showInputDialog(
+							frame, "Choose a curriculum:", "Export",
+							JOptionPane.PLAIN_MESSAGE, null, kt.ctx.activeLibrary.curriculums.toTypedArray(), null
+																) as Curriculum? ?: return@onAction
 
 						CurriculumExportDialog(chosen, kt).display()
 					}
+				}
+			}
+		}
+
+		menu("Edit") {}
+
+		menu("About") {
+			item("Info") {
+				onAction {
+					about.display()
 				}
 			}
 			item("License") {
@@ -129,15 +145,12 @@ class Toolbar(private val kt: KanjiCardUIKt, license: License) : JMenuBar() {
 			}
 		}
 
-		menu("Edit") {}
-
-		menu("TBD") {}
-
 		add(Box.createGlue()) // this un-centers the title :\
 		add(button)
 	}
 
 	companion object {
+
 		fun Container.menu(name: String, block: MenuScope.() -> Unit): JMenu {
 			val menu = JMenu(name)
 			MenuScope(menu).apply(block)
@@ -147,10 +160,12 @@ class Toolbar(private val kt: KanjiCardUIKt, license: License) : JMenuBar() {
 	}
 
 	abstract class Scope<T>(val self: T) {
+
 		fun attr(block: T.() -> Unit) = self.apply(block)
 	}
 
 	class MenuScope(self: JMenu) : Scope<JMenu>(self) {
+
 		fun item(name: String, block: ItemScope.() -> Unit): JMenuItem {
 			val item = JMenuItem(name)
 			ItemScope(item).apply(block)

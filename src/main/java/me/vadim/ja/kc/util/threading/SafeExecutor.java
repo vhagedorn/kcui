@@ -1,6 +1,6 @@
 package me.vadim.ja.kc.util.threading;
 
-import me.vadim.ja.kc.util.ReflectUtil;
+import me.vadim.ja.kc.util.Util;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.BlockingQueue;
@@ -53,7 +53,7 @@ public class SafeExecutor extends ThreadPoolExecutor {
 			System.err.println("WARN: Exception while executing future task:");
 			t.printStackTrace();
 			if (t instanceof Error) { // rethrow errors
-				ReflectUtil.sneaky(t);
+				Util.sneaky(t);
 			}
 		}
 	}

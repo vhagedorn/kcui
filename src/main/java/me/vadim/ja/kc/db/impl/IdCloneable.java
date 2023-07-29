@@ -1,5 +1,6 @@
-package me.vadim.ja.kc.wrapper;
+package me.vadim.ja.kc.db.impl;
 
+import me.vadim.ja.kc.db.Identifiable;
 /**
  * @author vadim
  */

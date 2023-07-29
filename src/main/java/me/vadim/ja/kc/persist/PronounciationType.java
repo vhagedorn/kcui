@@ -1,5 +1,7 @@
 package me.vadim.ja.kc.persist;
 
+import me.vadim.ja.kc.persist.impl.KCFactory;
+
 /**
  * @author vadim
  */
@@ -25,6 +27,10 @@ public enum PronounciationType {
 
 	PronounciationType(int id) {
 		this.id = id;
+	}
+
+	public SpokenElement toSpoken(String info) {
+		return KCFactory.ofSpoken(info, this);
 	}
 
 	public static PronounciationType fromID(int id){

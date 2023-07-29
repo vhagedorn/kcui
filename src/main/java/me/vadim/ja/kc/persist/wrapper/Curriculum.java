@@ -13,6 +13,10 @@ public interface Curriculum {
 
 	Group addGroup(String name);
 
+	void unlinkGroup(Group group);
+
 	Set<Group> getGroups();
+
+	void flatten();
 
 }

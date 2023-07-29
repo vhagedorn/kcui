@@ -9,6 +9,7 @@ import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import me.vadim.ja.kc.persist.LinguisticElement;
+import me.vadim.ja.kc.persist.SpokenElement;
 import me.vadim.ja.kc.persist.wrapper.Card;
 
 import java.nio.charset.StandardCharsets;
@@ -22,21 +23,24 @@ import java.util.stream.Collectors;
 @XmlAccessorType(XmlAccessType.NONE)
 public class Kard implements Card {
 
-	private static HashFunction sha1 = Hashing.sha1();
+	private static final HashFunction sha1 = Hashing.sha1();
 
 	@XmlAttribute
 	private Location location;
 
 	@XmlElement
-	private Kanji[] japanese;
+	private Kanji[] japanese = new Kanji[0];
 
 	@XmlElement
-	private Definition[] english;
+	private Definition[] english = new Definition[0];
 
 	@XmlElement
-	private Grammar[] grammar;
+	private Grammar[] grammar = new Grammar[0];
 
-	Kard() {}
+	@XmlElement
+	private Speak[] spoken = new Speak[0];
+
+	Kard() { }
 
 	Kard(Location location) {
 		this.location = location;
@@ -63,6 +67,11 @@ public class Kard implements Card {
 	}
 
 	@Override
+	public SpokenElement[] getSpoken() {
+		return Arrays.copyOf(spoken, spoken.length);
+	}
+
+	@Override
 	public void setLocation(Location location) {
 		this.location = location;
 	}
@@ -83,8 +92,18 @@ public class Kard implements Card {
 	}
 
 	@Override
+	public void setSpoken(SpokenElement... speak) {
+		spoken = Arrays.stream(speak).map(Speak.class::cast).toArray(Speak[]::new);
+	}
+
+	@Override
 	public String describeJapanese() {
 		return Arrays.stream(japanese).map(LinguisticElement::describe).collect(Collectors.joining(""));
+	}
+
+	@Override
+	public String describeGrammar() {
+		return Arrays.stream(grammar).map(LinguisticElement::describe).collect(Collectors.joining(", "));
 	}
 
 	private static String join(String delim, LinguisticElement[] elems) {
@@ -97,7 +116,8 @@ public class Kard implements Card {
 				.append(" { ")
 				.append("japanese=").append(join("", japanese)).append(", ")
 				.append("english=[").append(join("; ", english)).append("], ")
-				.append("grammar=").append(join(" or ", grammar))
+				.append("grammar=").append(join(" or ", grammar)).append(", ")
+				.append("spoken=[").append(join(", ", spoken)).append("]")
 				.append(" } ")
 				.toString();
 	}

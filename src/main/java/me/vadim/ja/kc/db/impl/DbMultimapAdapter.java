@@ -1,7 +1,7 @@
 package me.vadim.ja.kc.db.impl;
 
 import me.vadim.ja.kc.db.DbMultimap;
-import me.vadim.ja.kc.wrapper.Identifiable;
+import me.vadim.ja.kc.db.Identifiable;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;

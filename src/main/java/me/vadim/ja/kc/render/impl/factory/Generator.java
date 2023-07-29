@@ -1,9 +1,9 @@
 package me.vadim.ja.kc.render.impl.factory;
 
 import me.vadim.ja.kc.ResourceAccess;
-import me.vadim.ja.kc.wrapper.Definition;
-import me.vadim.ja.kc.wrapper.Kanji;
-import me.vadim.ja.kc.wrapper.Pronounciation;
+import me.vadim.ja.kc.persist.LinguisticElement;
+import me.vadim.ja.kc.persist.SpokenElement;
+import me.vadim.ja.kc.persist.wrapper.Card;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,9 +20,9 @@ public class Generator implements ResourceAccess {
 			back  = null,
 			front = null;
 
-	public final Kanji kanji;
+	public final Card kanji;
 
-	public Generator(Kanji kanji) {
+	public Generator(Card kanji) {
 		this.kanji = kanji;
 	}
 
@@ -34,7 +34,7 @@ public class Generator implements ResourceAccess {
 			Element  element = doc.getElementById("kanji");
 			if (element == null)
 				throw new IllegalStateException();
-			element.html(kanji.value);
+			element.html(kanji.describeJapanese());
 			htmlFront = doc;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -66,7 +66,7 @@ public class Generator implements ResourceAccess {
 			element.html("");
 			Element div;
 			Element span;
-			for (Pronounciation pronounciation : kanji.getPronounciations()) {
+			for (SpokenElement pronounciation : kanji.getSpoken()) {
 				div = doc.createElement("div");
 
 				//todo: orientation?
@@ -78,7 +78,7 @@ public class Generator implements ResourceAccess {
 
 				span = doc.createElement("span");
 				span.attr("class", "pron");
-				span.html(pronounciation.value);
+				span.html(pronounciation.describe());
 				div.appendChild(span);
 
 				element.appendChild(div);
@@ -88,7 +88,7 @@ public class Generator implements ResourceAccess {
 			element = doc.getElementById("type");
 			if (element == null)
 				throw new IllegalStateException();
-			element.html(kanji.toGrammarString());
+			element.html(kanji.describeGrammar());
 
 			//definition
 			element = doc.getElementById("definition");
@@ -96,9 +96,9 @@ public class Generator implements ResourceAccess {
 				throw new IllegalStateException();
 			element.html("");
 			Element li;
-			for (Definition def : kanji.getDefinitions()) {
+			for (LinguisticElement def : kanji.getEnglish()) {
 				li = doc.createElement("li");
-				li.html(def.value);
+				li.html(def.describe());
 				element.appendChild(li);
 			}
 

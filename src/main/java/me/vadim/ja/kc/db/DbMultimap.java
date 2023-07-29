@@ -1,6 +1,5 @@
 package me.vadim.ja.kc.db;
 
-import me.vadim.ja.kc.wrapper.Identifiable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

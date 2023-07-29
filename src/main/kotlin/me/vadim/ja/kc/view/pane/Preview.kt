@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.view
+package me.vadim.ja.kc.view.pane
 
 import io.github.mslxl.ktswing.attr
 import io.github.mslxl.ktswing.component.*
@@ -9,9 +9,9 @@ import me.vadim.ja.kc.KCIcon
 import me.vadim.ja.kc.KanjiCardUIKt
 import me.vadim.ja.kc.Texture
 import me.vadim.ja.kc.impl.Icons
+import me.vadim.ja.kc.persist.wrapper.Card
 import me.vadim.ja.kc.render.impl.img.DiagramCreator
 import me.vadim.ja.kc.row
-import me.vadim.ja.kc.wrapper.Kanji
 import me.vadim.ja.swing.ImagePanel
 import java.awt.*
 import java.awt.image.BufferedImage
@@ -29,7 +29,9 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 	 */
 	@Suppress("JoinDeclarationAndAssignment")
 	private class ImageCarousel(private val forcedWidth: Int = -1, private val forcedHeight: Int = -1) : JPanel(GridBagLayout()) {
+
 		private companion object {
+
 			@JvmStatic
 			private fun smallButton(icon: Texture): Icon = icon.withSize(15, 15).asIcon()
 		}
@@ -106,9 +108,9 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 		private fun ImagePanel.applyImage(ico: BufferedImage): ImagePanel {
 			sticksTo = SwingConstants.CENTER
 			val wrap = Icons.wrap(ico)
-			if(forcedWidth > 0)
+			if (forcedWidth > 0)
 				wrap.withWidth(forcedWidth)
-			if(forcedHeight > 0)
+			if (forcedHeight > 0)
 				wrap.withHeight(forcedHeight)
 			image = wrap.asImage()
 			return this
@@ -145,7 +147,7 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 		}
 	}
 
-	var kanji: Kanji? = null
+	var card: Card? = null
 	var editable: Boolean = false
 		set(value) {
 			fun recurse(component: Container) {
@@ -358,5 +360,4 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 		}
 		repaint()
 	}
-
 }

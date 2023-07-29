@@ -100,7 +100,7 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 	}
 
 	public KanjiCardUI() throws IOException {
-		{ // cringe static fields
+		{
 			version = new TextResource("version");
 			kt.setVersion(version.asString());
 
@@ -138,6 +138,10 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 		System.out.println("\tby Vadim Hagedorn @ March 2023");
 		System.out.println();
 
+//		setup();
+	}
+
+	private void setup() {
 		setFocusable(true);
 		setPreferredSize(new Dimension(PREFERRED_SIZE_X, PREFERRED_SIZE_Y));
 		setMinimumSize(new Dimension(MINIMUM_SIZE_X, MINIMUM_SIZE_Y));
@@ -148,7 +152,7 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				e.getWindow().setVisible(false);
-				kt.getMgr().shutdown();
+				kt.getCtx().shutdown();
 			}
 		});
 //		setUndecorated(true);
@@ -188,6 +192,7 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 		pack();
 		setLocationRelativeTo(null);
 		setVisible(true);
+		kt.showFirstLaunch();
 	}
 
 	protected void populate() {
@@ -195,10 +200,12 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 		add(kt.populate(), BorderLayout.CENTER);
 	}
 
+	@Override
 	public Rectangle getMaximizedBounds() {
 		return (maxBounds);
 	}
 
+	@Override
 	public synchronized void setMaximizedBounds(Rectangle maxBounds) {
 		this.maxBounds = maxBounds;
 		super.setMaximizedBounds(maxBounds);
@@ -206,6 +213,7 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 
 	private Rectangle maxBounds;
 
+	@Override
 	public synchronized void setExtendedState(int state) {
 		if (maxBounds == null &&
 			(state & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH) {

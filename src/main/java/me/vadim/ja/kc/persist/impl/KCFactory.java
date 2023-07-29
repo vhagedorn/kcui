@@ -1,5 +1,7 @@
 package me.vadim.ja.kc.persist.impl;
 
+import me.vadim.ja.kc.persist.PronounciationType;
+import me.vadim.ja.kc.persist.SpokenElement;
 import me.vadim.ja.kc.persist.wrapper.Card;
 import me.vadim.ja.kc.persist.wrapper.Library;
 import me.vadim.ja.kc.persist.LinguisticElement;
@@ -27,6 +29,10 @@ public class KCFactory {
 
 	public static final LinguisticElement ofGrammar(String info) {
 		return new Grammar(info);
+	}
+
+	public static final SpokenElement ofSpoken(String info, PronounciationType type) {
+		return new Speak(info, type);
 	}
 
 }
