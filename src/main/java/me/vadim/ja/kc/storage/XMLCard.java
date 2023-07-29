@@ -6,7 +6,13 @@ import me.vadim.ja.kc.storage.model.impl.CardModel;
 import me.vadim.ja.kc.storage.model.impl.CurriculumModel;
 import me.vadim.ja.kc.storage.model.impl.GroupModel;
 import me.vadim.ja.kc.storage.model.impl.LibraryModel;
-import me.vadim.ja.kc.wrapper.*;
+import me.vadim.ja.kc.wrapper.Curriculum;
+import me.vadim.ja.kc.wrapper.Definition;
+import me.vadim.ja.kc.wrapper.Group;
+import me.vadim.ja.kc.wrapper.Kanji;
+import me.vadim.ja.kc.wrapper.PartOfSpeech;
+import me.vadim.ja.kc.wrapper.Pronounciation;
+import me.vadim.ja.kc.persist.PronounciationType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -21,28 +27,28 @@ public class XMLCard implements XMLinator<Kanji> {
 
 	/* elements */
 
-	public static final String ELEM_CARD            = "Card";
+	public static final String ELEM_CARD = "Card";
 	public static final String ELEM_PARTS_OF_SPEECH = "PartsOfSpeech";
 	public static final String ELEM_PRONOUNCIATIONS = "Pronounciations";
-	public static final String ELEM_DEFINITIONS     = "Definitions";
+	public static final String ELEM_DEFINITIONS = "Definitions";
 
 	/* tags */
 
-	public static final String TAG_CARD_INFO      = "value";
+	public static final String TAG_CARD_INFO = "value";
 	public static final String TAG_PART_OF_SPEECH = "p";
 	public static final String TAG_PRONOUNCIATION = "p";
-	public static final String TAG_DEFINITION     = "d";
+	public static final String TAG_DEFINITION = "d";
 
 	/* attributes */
 
-	public static final String ATTR_ID        = "id";
+	public static final String ATTR_ID = "id";
 	public static final String ATTR_CURRICULUM = "curriculum";
-	public static final String ATTR_GROUP      = "group";
-	public static final String ATTR_NAME       = "name";
-	public static final String ATTR_INFO       = "info";
-	public static final String ATTR_PID         = "pid";
-	public static final String ATTR_INDEX      = "i";
-	public static final String ATTR_TYPE       = "type";
+	public static final String ATTR_GROUP = "group";
+	public static final String ATTR_NAME = "name";
+	public static final String ATTR_INFO = "info";
+	public static final String ATTR_PID = "pid";
+	public static final String ATTR_INDEX = "i";
+	public static final String ATTR_TYPE = "type";
 
 	/* values */
 
@@ -57,10 +63,10 @@ public class XMLCard implements XMLinator<Kanji> {
 	@Override
 	public void read(Document doc, ReadContext ctx) {
 		Element card = doc.getElementById(ELEM_CARD);
-		String cur = card.getAttribute(ATTR_CURRICULUM);
-		String grp = card.getAttribute(ATTR_GROUP);
-		String kid = card.getAttribute(ATTR_ID);
-		String val = card.getElementsByTagName(TAG_CARD_INFO).item(0).getTextContent();
+		String  cur  = card.getAttribute(ATTR_CURRICULUM);
+		String  grp  = card.getAttribute(ATTR_GROUP);
+		String  kid  = card.getAttribute(ATTR_ID);
+		String  val  = card.getElementsByTagName(TAG_CARD_INFO).item(0).getTextContent();
 
 		//todo: hmmmmmmm
 		ctx.advanceCurriculum(cur);
@@ -159,7 +165,7 @@ public class XMLCard implements XMLinator<Kanji> {
 		//	cards)
 		//	- share.xml: (TBD) contains share information, such as incoming ids, groups, parts of speech, etc.
 		// 	- lib.xml: contains library information (potentially make this a SQLite, but I'm tired of SQLite). this is like a permanent local share.xml
-		LibraryModel lib = new LibraryModel();
+		LibraryModel    lib = new LibraryModel();
 		CurriculumModel cur = lib.newModel("Genki I");
 
 		GroupModel gpm = cur.newModel("Lesson 4");
@@ -179,10 +185,11 @@ public class XMLCard implements XMLinator<Kanji> {
 		k.addDefinition("every night");
 		k.addPartOfSpeech(PartOfSpeech.builder().name("noun").id(1).build());
 		k.addPartOfSpeech(PartOfSpeech.builder().name("adverb").id(2).build());
-
-		XMLCard  ke  = new XMLCard(XML.newDocument(), k);
-		Document out = XML.newDocument();
-		ke.write(out);
-		XML.save(out, file);
+//
+//		XMLCard  ke  = new XMLCard(XML.newDocument(), k);
+//		Document out = XML.newDocument();
+//		ke.write(out);
+//		XML.save(out, file);
 	}
+
 }

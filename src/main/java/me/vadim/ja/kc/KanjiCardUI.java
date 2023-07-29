@@ -2,8 +2,10 @@ package me.vadim.ja.kc;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import me.vadim.ja.Application;
+import me.vadim.ja.kc.persist.io.JAXBStorage;
 import me.vadim.ja.kc.render.DocConverters;
 import me.vadim.ja.kc.render.impl.factory.Generator;
+import me.vadim.ja.kc.util.threading.LocalExecutors;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author vadim
@@ -30,28 +31,20 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 	public static final int MINIMUM_SIZE_X   = 725;
 	public static final int MINIMUM_SIZE_Y   = 500;
 
-	private static Thread.UncaughtExceptionHandler ueh(){
-		return (t, x) -> {
-			System.out.println("Thread "+t.getName()+" threw an uncaught exception:");
-			x.printStackTrace();
-		};
-	}
-
 	public static ExecutorService threadPool(String nameFormat) {
-		return Executors.newCachedThreadPool(new ThreadFactoryBuilder()
+		return LocalExecutors.newExtendedThreadPool(new ThreadFactoryBuilder()
 													 .setDaemon(true)
 													 .setNameFormat(nameFormat)
-													 .setUncaughtExceptionHandler(ueh())
 													 .build());
 	}
 
 	public static ExecutorService singleThread(String nameFormat) {
-		return Executors.newSingleThreadExecutor(new ThreadFactoryBuilder()
+		return LocalExecutors.newExtendedThreadPool(new ThreadFactoryBuilder()
 														 .setDaemon(false)
 														 .setNameFormat(nameFormat)
-														 .setUncaughtExceptionHandler(ueh())
 														 .build());
 	}
+
 	@SuppressWarnings("FieldCanBeLocal")
 	private final TextResource
 			version, license_txt, templates_md,
@@ -131,6 +124,11 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 			printing_css = new TextResource("doc/printing.css", "template/card_stylesheet.css");
 			printing_css.copyOrLoad();
 			DocConverters.printing_css = printing_css.asString();
+
+			// todo
+			JAXBStorage.prefDir = new File(".");
+			JAXBStorage.cardDir = new File("./cards");
+			JAXBStorage.freeDir = new File("./cards/.group");
 		}
 
 		System.out.println();

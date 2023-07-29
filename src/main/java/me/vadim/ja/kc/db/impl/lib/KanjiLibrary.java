@@ -2,6 +2,7 @@ package me.vadim.ja.kc.db.impl.lib;
 
 import me.vadim.ja.kc.db.DbEnum;
 import me.vadim.ja.kc.db.impl.Sqlite3Database;
+import me.vadim.ja.kc.persist.PronounciationType;
 import me.vadim.ja.kc.wrapper.*;
 
 import java.sql.SQLException;

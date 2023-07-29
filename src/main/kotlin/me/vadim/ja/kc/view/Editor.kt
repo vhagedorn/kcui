@@ -8,6 +8,7 @@ import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.*
 import io.github.mslxl.ktswing.onAction
 import me.vadim.ja.kc.*
+import me.vadim.ja.kc.persist.PronounciationType
 import me.vadim.ja.kc.wrapper.*
 import me.vadim.ja.swing.SortedComboBoxModel
 import java.awt.*

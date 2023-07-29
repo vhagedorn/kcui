@@ -1,5 +1,7 @@
 package me.vadim.ja.kc.wrapper;
 
+import me.vadim.ja.kc.persist.PronounciationType;
+
 /**
  * @author vadim
  */

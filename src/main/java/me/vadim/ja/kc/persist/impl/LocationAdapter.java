@@ -1,0 +1,34 @@
+package me.vadim.ja.kc.persist.impl;
+
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
+
+/**
+ * @author vadim
+ */
+public class LocationAdapter extends XmlAdapter<String, Location> {
+
+	@Override
+	public Location unmarshal(String v) throws Exception {
+		if(Location.EMPTY.equals(v))
+			return Location.NONE;
+
+		if (v == null || v.isBlank())
+			throw new IllegalArgumentException(v);
+		String[] split = v.split(Location.DELIM);
+		if (split.length > 2)
+			throw new IllegalArgumentException(v);
+		if (split.length == 1)
+			if (v.startsWith(Location.DELIM)) // #group
+				return new Location(null, new Grp(split[0]));
+			else // curriculum
+				return new Location(new Curr(split[0]), null);
+		else // curriculum#group
+			return new Location(new Curr(split[0]), new Grp(split[1]));
+	}
+
+	@Override
+	public String marshal(Location v) throws Exception {
+		return v == null ? Location.EMPTY : v.toString();
+	}
+
+}

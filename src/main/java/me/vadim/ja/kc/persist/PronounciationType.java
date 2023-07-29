@@ -1,4 +1,4 @@
-package me.vadim.ja.kc.wrapper;
+package me.vadim.ja.kc.persist;
 
 /**
  * @author vadim

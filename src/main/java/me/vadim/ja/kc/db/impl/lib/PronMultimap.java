@@ -3,7 +3,7 @@ package me.vadim.ja.kc.db.impl.lib;
 import me.vadim.ja.kc.db.impl.DbMultimapAdapter;
 import me.vadim.ja.kc.wrapper.Kanji;
 import me.vadim.ja.kc.wrapper.Pronounciation;
-import me.vadim.ja.kc.wrapper.PronounciationType;
+import me.vadim.ja.kc.persist.PronounciationType;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
