@@ -11,6 +11,7 @@ import java.sql.SQLException;
 /**
  * @author vadim
  */
+@Deprecated
 public class SQLite3Connector implements JDBCConnector {
 
 	private final File db;
@@ -29,7 +30,7 @@ public class SQLite3Connector implements JDBCConnector {
 		try {
 			if (!db.exists()) {
 				File parent = db.getParentFile();
-				if(parent != null)
+				if (parent != null)
 					parent.mkdirs();
 				db.createNewFile();
 			}
@@ -41,4 +42,5 @@ public class SQLite3Connector implements JDBCConnector {
 
 		return DriverManager.getConnection("jdbc:sqlite:" + db.getPath());
 	}
+
 }

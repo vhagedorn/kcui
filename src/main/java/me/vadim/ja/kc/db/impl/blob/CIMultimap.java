@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * @author vadim
  */
+@Deprecated
 class CIMultimap extends DbMultimapAdapter<CachedImage.Key, CachedImage.Value> {
 
 	@Override
@@ -23,9 +24,9 @@ class CIMultimap extends DbMultimapAdapter<CachedImage.Key, CachedImage.Value> {
 		PreparedStatement statement = connection.prepareStatement("select img from IMGDAT where id=?");
 		statement.setLong(1, key.id());
 
-		ResultSet result = statement.executeQuery();
-		List<CachedImage.Value> buf = new ArrayList<>();
-		while(result.next())
+		ResultSet               result = statement.executeQuery();
+		List<CachedImage.Value> buf    = new ArrayList<>();
+		while (result.next())
 			buf.add(CachedImage.value(result.getBytes(1)));
 		return buf;
 	}
@@ -47,4 +48,5 @@ class CIMultimap extends DbMultimapAdapter<CachedImage.Key, CachedImage.Value> {
 		}
 		statement.executeBatch();
 	}
+
 }

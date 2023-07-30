@@ -8,13 +8,14 @@ import java.util.Base64;
 /**
  * @author vadim
  */
+@Deprecated
 class CachedImage {
 
 	public Key key;
 	public Value value;
 
 	CachedImage(String character, int renderOpts, String base64) {
-		this.key = new Key(character, renderOpts);
+		this.key   = new Key(character, renderOpts);
 		this.value = new Value(base64);
 	}
 
@@ -31,15 +32,16 @@ class CachedImage {
 		return new Key(character, diag.toBitmask());
 	}
 
-	public static Value value(String base64){
+	public static Value value(String base64) {
 		return new Value(base64);
 	}
 
-	public static Value value(byte[] toEncode){
+	public static Value value(byte[] toEncode) {
 		return new Value(Base64.getEncoder().encodeToString(toEncode));
 	}
 
 	public static class Key implements Identifiable {
+
 		public final String character;
 		public final int renderOpts;
 
@@ -60,18 +62,21 @@ class CachedImage {
 		private static int bitmask(long id) {
 			return (int) id;
 		}
+
 	}
 
 	public static class Value {
+
 		public String base64;
 
 		private Value(String base64) {
 			this.base64 = base64;
 		}
 
-		public byte[] decode(){
+		public byte[] decode() {
 			return Base64.getDecoder().decode(base64); // png image data
 		}
+
 	}
 
 }

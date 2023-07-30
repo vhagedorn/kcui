@@ -11,6 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author vadim
  */
+@Deprecated
 public abstract class DbMultimapAdapter<K extends Identifiable, V> extends DbAddonAdapter implements DbMultimap<K, V> {
 
 	public DbMultimapAdapter() {
@@ -26,7 +27,7 @@ public abstract class DbMultimapAdapter<K extends Identifiable, V> extends DbAdd
 	public final List<V> get(K key) {
 		try {
 			return query(key);
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -37,7 +38,7 @@ public abstract class DbMultimapAdapter<K extends Identifiable, V> extends DbAdd
 	public void clear(K key) {
 		try {
 			delete(key);
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -48,7 +49,7 @@ public abstract class DbMultimapAdapter<K extends Identifiable, V> extends DbAdd
 	public void put(K key, List<V> value) {
 		try {
 			insert(key, value);
-		} catch (SQLException e){
+		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 	}

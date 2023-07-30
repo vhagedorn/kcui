@@ -14,6 +14,7 @@ import java.util.function.IntFunction;
 /**
  * @author vadim
  */
+@Deprecated
 public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAdapter implements DbEnum<I> {
 
 	protected static long[] parseKeySet(ResultSet result) throws SQLException {
@@ -24,7 +25,7 @@ public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAda
 		return longList.stream().sorted().mapToLong(Long::longValue).toArray();
 	}
 
-	protected static String selectCountStatement(String tableName){
+	protected static String selectCountStatement(String tableName) {
 		return "select Count(*) from " + tableName;
 	}
 
@@ -43,16 +44,23 @@ public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAda
 	/* actual impls */
 
 	protected abstract void implDelete(long id) throws SQLException;
+
 	protected abstract void implInsert(I obj) throws SQLException;
+
 	protected abstract void implUpdate(I obj) throws SQLException;
+
 	protected abstract long[] implSelect(I obj) throws SQLException;
+
 	protected abstract I implSelect(long id) throws SQLException;
 
 	/* helper methods for this class */
 
 	protected abstract boolean hasId(I obj);
+
 	protected abstract void setId(I obj, long id);
+
 	protected abstract PreparedStatement selectAllQuery(boolean count) throws SQLException;
+
 	protected abstract I selectAllBuild(ResultSet result) throws SQLException;
 
 	@Override
@@ -92,7 +100,7 @@ public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAda
 			if (id == -1) // INSERT new row
 				executeLocking(() -> implInsert(obj));
 			else {// UPDATE existing row
-				if(!hasId(obj)) // using withId will not fix original object's id. plus I don't want to modify withId to NOT return a clone...
+				if (!hasId(obj)) // using withId will not fix original object's id. plus I don't want to modify withId to NOT return a clone...
 					setId(obj, id);
 				final long _id = id;
 				executeLocking(() -> implUpdate(obj.withId(_id))); // use found ID instead
@@ -126,7 +134,7 @@ public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAda
 	public I[] values() {
 		try {
 			PreparedStatement statement;
-			ResultSet             result;
+			ResultSet         result;
 
 			statement = selectAllQuery(true);
 			result    = statement.executeQuery();
@@ -137,7 +145,7 @@ public abstract class DbEnumAdapter<I extends IdCloneable<I>> extends DbAddonAda
 			statement = selectAllQuery(false);
 			result    = statement.executeQuery();
 			I[] buf = factory.apply(ct);
-			int            i   = 0;
+			int i   = 0;
 			while (result.next())
 				buf[i++] = selectAllBuild(result);
 

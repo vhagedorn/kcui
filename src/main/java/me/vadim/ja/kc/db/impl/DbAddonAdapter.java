@@ -9,12 +9,13 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author vadim
  */
+@Deprecated
 public abstract class DbAddonAdapter implements DbAddon {
 
 	protected Connection connection;
 	protected final ReentrantLock lock; // primarily utilized for lock-on-write operations
 
-	public DbAddonAdapter(){
+	public DbAddonAdapter() {
 		this(null);
 	}
 
@@ -34,13 +35,17 @@ public abstract class DbAddonAdapter implements DbAddon {
 
 	@FunctionalInterface
 	public interface SQLExceptional {
+
 		void run() throws SQLException;
+
 	}
 
 	/**
 	 * Run a block, synchronized on the {@link #lock} field.
 	 * Wraps any {@link SQLException} in a {@link RuntimeException} and rethrows.
+	 *
 	 * @param statement the lambda to execute
+	 *
 	 * @see #executeLocking(SQLExceptional)
 	 */
 	protected final void runLocking(SQLExceptional statement) {
@@ -50,17 +55,18 @@ public abstract class DbAddonAdapter implements DbAddon {
 		} catch (SQLException e) {
 			rethrow = e;
 		}
-		if(rethrow != null)
+		if (rethrow != null)
 			throw new RuntimeException(rethrow);
 	}
 
 	/**
 	 * Run a block, synchronized on the {@link #lock} field.
 	 * Does not catch exceptions.
-	 * @param statement the lambda to execute   
+	 *
+	 * @param statement the lambda to execute
 	 */
 	protected final void executeLocking(SQLExceptional statement) throws SQLException {
-		if(lock == null)
+		if (lock == null)
 			throw new NullPointerException("Use `super(lock);` if you want to use `runLocking(...);`");
 		lock.lock();
 		try {

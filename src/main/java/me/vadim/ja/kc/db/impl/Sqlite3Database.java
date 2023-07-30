@@ -5,6 +5,7 @@ import me.vadim.ja.kc.db.JDBCDatabase;
 /**
  * @author vadim
  */
+@Deprecated
 public abstract class Sqlite3Database extends JDBCDatabase {
 
 	public Sqlite3Database(String file) {

@@ -7,6 +7,7 @@ import java.sql.SQLException;
 /**
  * @author vadim
  */
+@Deprecated
 public interface JDBCConnector {
 
 	Connection create() throws IOException, SQLException;

@@ -7,16 +7,17 @@ import java.sql.SQLException;
 /**
  * @author vadim
  */
+@Deprecated
 public abstract class JDBCDatabase {
 
-	protected     Connection    connection;
+	protected Connection connection;
 	private final JDBCConnector connector;
 
 	public JDBCDatabase(JDBCConnector connector) {
 		this.connector = connector;
 	}
 
-	public void connect(){
+	public void connect() {
 		try {
 			preConnect();
 			connection = connector.create();
@@ -26,8 +27,9 @@ public abstract class JDBCDatabase {
 		}
 	}
 
-	protected void preConnect() /* connection not yet created */ {}
-	protected void onConnect() throws SQLException {}
+	protected void preConnect() /* connection not yet created */ { }
+
+	protected void onConnect() throws SQLException { }
 
 	public void disconnect() {
 		try {
@@ -35,13 +37,14 @@ public abstract class JDBCDatabase {
 			connection.close();
 			connection = null;
 			onDisconnect();
-		} catch (SQLException x){
+		} catch (SQLException x) {
 			throw new RuntimeException(x);
 		}
 	}
 
-	protected void preDisconnect() throws SQLException {}
-	protected void onDisconnect()  /* connection already disposed */ {}
+	protected void preDisconnect() throws SQLException { }
+
+	protected void onDisconnect()  /* connection already disposed */ { }
 
 	public boolean isConnected() {
 		try {
