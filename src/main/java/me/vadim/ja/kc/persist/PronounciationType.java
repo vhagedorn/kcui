@@ -33,9 +33,9 @@ public enum PronounciationType {
 		return KCFactory.ofSpoken(info, this);
 	}
 
-	public static PronounciationType fromID(int id){
+	public static PronounciationType fromID(int id) {
 		for (PronounciationType val : values())
-			if(val.id == id)
+			if (val.id == id)
 				return val;
 		return null;
 	}

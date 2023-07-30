@@ -8,7 +8,7 @@ import java.io.IOException;
  */
 public abstract class Application extends JFrame {
 
-	public Application() throws IOException {}
+	public Application() throws IOException { }
 
 	public abstract void mainWindow();
 

@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
  * @author vadim
  */
 public class ElectronPDFProxy {
+
 	private final String url;
 
 	public ElectronPDFProxy(String url) {
@@ -39,7 +40,7 @@ public class ElectronPDFProxy {
 				JsonObject payload = new JsonObject();
 				payload.addProperty("url", urls[i]);
 				byte[] request = payload.toString().getBytes(StandardCharsets.UTF_8);
-				int length = request.length;
+				int    length  = request.length;
 
 				//send body
 				http.setFixedLengthStreamingMode(length);
@@ -47,12 +48,12 @@ public class ElectronPDFProxy {
 
 				System.out.println("-> " + http.getRequestMethod() + " " + http.getURL());
 				http.connect();
-				try(OutputStream os = http.getOutputStream()) {
+				try (OutputStream os = http.getOutputStream()) {
 					os.write(request);
 				}
 
 				//read response
-				try(InputStream is = http.getInputStream()) {
+				try (InputStream is = http.getInputStream()) {
 					res[i] = is.readAllBytes();
 				}
 			} catch (IOException e) {

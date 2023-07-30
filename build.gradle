@@ -24,6 +24,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.jetbrains:annotations:24.0.1'
     implementation 'org.jetbrains.kotlin:kotlin-reflect:1.5.30'
 
     implementation 'com.github.mslxl:KtSwing:2.1.2'

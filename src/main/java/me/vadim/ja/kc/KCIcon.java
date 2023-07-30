@@ -28,8 +28,7 @@ public enum KCIcon {
 	BACK("back.png"),
 	LEFT("left.png"),
 	RIGHT("right.png"),
-	PREVIEW_EMPTY("preview_empty.png", false)
-	;
+	PREVIEW_EMPTY("preview_empty.png", false);
 
 	private final BufferedImage primary, secondary;
 
@@ -41,16 +40,16 @@ public enum KCIcon {
 		this(primary, null, invert);
 	}
 
-	KCIcon(String primary, String secondary){
+	KCIcon(String primary, String secondary) {
 		this(primary, secondary, KCTheme.DEFAULT_ICON_INVERT_STATE);
 	}
 
-	KCIcon(String primary, String secondary, boolean invert){
+	KCIcon(String primary, String secondary, boolean invert) {
 		this.primary = loadImageResource(primary, invert);
 		checkResource(this.primary, primary);
 
 		this.secondary = loadImageResource(secondary, invert);
-		if(secondary != null)
+		if (secondary != null)
 			checkResource(this.secondary, secondary);
 	}
 
@@ -60,13 +59,13 @@ public enum KCIcon {
 	}
 
 	@Nullable
-	public Texture getSecondary(){
+	public Texture getSecondary() {
 		return secondary == null ? null : Icons.wrap(secondary);
 	}
 
-	private static void checkResource(Object ref, String name){
-		if(ref == null)
-			throw new IllegalStateException("Could not find resource with name '"+name+"'");
+	private static void checkResource(Object ref, String name) {
+		if (ref == null)
+			throw new IllegalStateException("Could not find resource with name '" + name + "'");
 	}
 
 	private static BufferedImage loadImageResource(String name, boolean invert) {

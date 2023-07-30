@@ -1,5 +1,7 @@
 package me.vadim.ja.kc.persist.impl;
 
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import me.vadim.ja.kc.persist.wrapper.Curriculum;
 import me.vadim.ja.kc.persist.wrapper.Group;
 import me.vadim.ja.kc.util.Util;
@@ -12,11 +14,12 @@ import java.util.Set;
 /**
  * @author vadim
  */
+@XmlRootElement(name = "curriculum")
 public class Curr implements Curriculum {
 
 	private String name;
 
-	Curr() {}
+	Curr() { }
 
 	Curr(String name) {
 		setName(name);
@@ -34,10 +37,12 @@ public class Curr implements Curriculum {
 		this.name = Util.sanitizeXML(name.replace(Location.DELIM, ""));
 	}
 
+	@XmlElement
 	private final Set<Grp> groups = new HashSet<>();
 
 	@Override
 	public Set<Group> getGroups() {
+		flatten();
 		return Collections.unmodifiableSet(groups);
 	}
 
@@ -50,7 +55,7 @@ public class Curr implements Curriculum {
 
 	@Override
 	public void unlinkGroup(Group group) {
-		if(!(group instanceof Grp)) return;
+		if (!(group instanceof Grp)) return;
 		Grp grp = (Grp) group;
 		grp.curr = null;
 		groups.remove(grp);
@@ -67,6 +72,11 @@ public class Curr implements Curriculum {
 		if (!(obj instanceof Curriculum)) return false;
 		Curriculum curriculum = (Curriculum) obj;
 		return Objects.equals(name, curriculum.getName());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(name);
 	}
 
 	@Override

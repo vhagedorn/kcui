@@ -32,7 +32,7 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 	override val minSize = Dimension(350, 350)
 
 	init {
-		defaultCloseOperation = HIDE_ON_CLOSE
+		defaultCloseOperation = DISPOSE_ON_CLOSE
 		layout = BorderLayout()
 		add(swing<JPanel> {
 			panel {
@@ -86,7 +86,7 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 								kt.ctx.export(groups, kt.preview.gather()).thenAccept {
 									pb.dispose()
 
-									val fc = JFileChooser()
+									val fc = JFileChooser(".")
 									fc.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
 									val resp = fc.showSaveDialog(this@CurriculumExportDialog)
 

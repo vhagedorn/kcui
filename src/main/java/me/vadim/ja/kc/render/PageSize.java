@@ -9,6 +9,7 @@ public interface PageSize {
 
 	/**
 	 * May not be present for custom page sizes.
+	 *
 	 * @return the name for this page size
 	 */
 	@Nullable

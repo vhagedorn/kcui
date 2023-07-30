@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutorService;
 public class JvppetteerPDFConverter implements PDFConversionService {
 
 
-	private static Margin margins(String css){
+	private static Margin margins(String css) {
 		Margin margin = new Margin();
 		margin.setLeft(css);
 		margin.setRight(css);
@@ -46,7 +46,7 @@ public class JvppetteerPDFConverter implements PDFConversionService {
 	public JvppetteerPDFConverter(int port, ExecutorService worker) {
 		this.worker = worker;
 		try {
-			this.server = new StaticFileServer(port, "/v2");
+			this.server = new StaticFileServer(port, true, "/v2");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -73,12 +73,12 @@ public class JvppetteerPDFConverter implements PDFConversionService {
 	@Override
 	public PDDocument createPDF(Document html, PrintOptions options) {
 		try {
-			File tmp = File.createTempFile("puppeteer", "pdf");
-			Page    page    = browser.newPage();
+			File tmp  = File.createTempFile("puppeteer", "pdf");
+			Page page = browser.newPage();
 			page.goTo(server.uploadDocument(html), true);
 
 			PDFOptions pdfOpts = new PDFOptions();
-			PageSize ps = options.getSize().withUnit("in");
+			PageSize   ps      = options.getSize().withUnit("in");
 			pdfOpts.setWidth(ps.width() + "in");
 			pdfOpts.setHeight(ps.height() + "in");
 			pdfOpts.setDisplayHeaderFooter(options.printHeadersAndFooters());
@@ -92,16 +92,16 @@ public class JvppetteerPDFConverter implements PDFConversionService {
 			tmp.deleteOnExit();
 
 			return PDDocument.load(tmp);
-		}catch (IOException e){
+		} catch (IOException e) {
 			throw new RuntimeException(e);
-		} catch (InterruptedException e){
+		} catch (InterruptedException e) {
 			return null;
 		}
 	}
 
 	@Override
 	public CompletableFuture<PDDocument> printJob(Document html, PrintOptions options) {
-		return CompletableFuture.supplyAsync(() -> createPDF(html ,options), worker);
+		return CompletableFuture.supplyAsync(() -> createPDF(html, options), worker);
 	}
 
 	@Override
@@ -110,4 +110,5 @@ public class JvppetteerPDFConverter implements PDFConversionService {
 		server.close();
 		browser.close();
 	}
+
 }

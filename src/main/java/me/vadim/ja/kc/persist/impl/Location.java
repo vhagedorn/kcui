@@ -62,8 +62,18 @@ public class Location {
 	}
 
 	@Override
+	public int hashCode() {
+		int result = 1;
+
+		result = 92821 * result + ((curriculum == null) ? 0 : curriculum.hashCode());
+		result = 92821 * result + ((group == null) ? 0 : group.hashCode());
+
+		return result;
+	}
+
+	@Override
 	public boolean equals(Object obj) {
-		if(!(obj instanceof Location)) return false;
+		if (!(obj instanceof Location)) return false;
 		Location location = (Location) obj;
 		return Objects.equals(curriculum, location.curriculum) && Objects.equals(group, location.group);
 	}

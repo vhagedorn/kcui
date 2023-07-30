@@ -37,7 +37,7 @@ import com.ruiyun.jvppeteer.protocol.DOM.Margin;
 public class Margins implements Cloneable {
 
 	public String unit;
-	public float  left, right, top, bottom;
+	public float left, right, top, bottom;
 
 	public Margins(String unit, float left, float right, float top, float bottom) {
 		this.unit   = unit;

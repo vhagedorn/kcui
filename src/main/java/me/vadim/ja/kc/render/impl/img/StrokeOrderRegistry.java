@@ -16,7 +16,7 @@ public class StrokeOrderRegistry {
 
 	public static final int DEFAULT_OPTS = 0;
 
-	private final DiagramCreator  diag;
+	private final DiagramCreator diag;
 	private final ExecutorService worker = KanjiCardUI.threadPool("Stroke diagram renderer %d");
 
 	private final BlobCache db;
@@ -28,7 +28,7 @@ public class StrokeOrderRegistry {
 
 	public String[] queryDiagrams(String target, int options) {
 		DiagramCreator diag = options == DEFAULT_OPTS ? this.diag : this.diag.withOptions(options);
-		int opts = diag.toBitmask();
+		int            opts = diag.toBitmask();
 
 		db.connect();
 		List<String> imgs = target.codePoints().filter(Character::isIdeographic).mapToObj(c -> {

@@ -19,4 +19,5 @@ public abstract class HttpAdapter implements HttpHandler {
 	}
 
 	protected abstract void onRequest(HttpExchange exchange) throws IOException;
+
 }

@@ -18,37 +18,45 @@ import java.util.List;
  */
 public class MultimapAdapter extends XmlAdapter<MultimapAdapter.AdaptedMultimap, ListMultimap<Location, Card>> {
 
-    public static class AdaptedMultimap {
-        public List<Entry> entry = new ArrayList<>();
-    }
+	public static class AdaptedMultimap {
 
-    @XmlType(namespace = "multi")
-    public static class Entry {
-        @XmlAttribute
-        public Location key;
-        @XmlValue
-        public String value;
-    }
+		public List<Entry> entry = new ArrayList<>();
 
-    @Override
-    public AdaptedMultimap marshal(ListMultimap<Location, Card> multimap) throws Exception {
-        AdaptedMultimap adaptedMultimap = new AdaptedMultimap();
-        for (Location key : multimap.keySet()) {
-            for (Card value : multimap.get(key)) {
-                Entry entry = new Entry();
-                entry.key = key;
-                entry.value = value.hash().toString();
-                adaptedMultimap.entry.add(entry);
-            }
-        }
-        return adaptedMultimap;
-    }
+	}
 
-    @Override
-    public ListMultimap<Location, Card> unmarshal(AdaptedMultimap adaptedMultimap) throws Exception {
-        ListMultimap<Location, Card> multimap = ArrayListMultimap.create();
-        for (Entry entry : adaptedMultimap.entry)
-            multimap.put(entry.key, JAXBStorage.readCard(entry.key, HashCode.fromString(entry.value)));
-        return multimap;
-    }
+	@XmlType(namespace = "multi")
+	public static class Entry {
+
+		@XmlAttribute
+		public Location key;
+		@XmlAttribute
+		public String kanji; // for the benefit of anyone trying to read the XML file
+		@XmlValue
+		public String value;
+
+	}
+
+	@Override
+	public AdaptedMultimap marshal(ListMultimap<Location, Card> multimap) throws Exception {
+		AdaptedMultimap adaptedMultimap = new AdaptedMultimap();
+		for (Location key : multimap.keySet()) {
+			for (Card value : multimap.get(key)) {
+				Entry entry = new Entry();
+				entry.key   = key;
+				entry.kanji = value.describeJapanese();
+				entry.value = value.hash().toString();
+				adaptedMultimap.entry.add(entry);
+			}
+		}
+		return adaptedMultimap;
+	}
+
+	@Override
+	public ListMultimap<Location, Card> unmarshal(AdaptedMultimap adaptedMultimap) throws Exception {
+		ListMultimap<Location, Card> multimap = ArrayListMultimap.create();
+		for (Entry entry : adaptedMultimap.entry)
+			multimap.put(entry.key, JAXBStorage.readCard(entry.key, HashCode.fromString(entry.value)));
+		return multimap;
+	}
+
 }

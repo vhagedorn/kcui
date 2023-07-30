@@ -22,10 +22,10 @@ public class ElectronPDFConverter implements PDFConversionService, ResourceAcces
 	private final ExecutorService worker;
 
 	public ElectronPDFConverter(int port, String electronConvertURL, ExecutorService worker) {
-		this.proxy = new ElectronPDFProxy(electronConvertURL);
+		this.proxy  = new ElectronPDFProxy(electronConvertURL);
 		this.worker = worker;
 		try {
-			this.server = new StaticFileServer(port, "/uploads");
+			this.server = new StaticFileServer(port, true, "/uploads");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -35,8 +35,8 @@ public class ElectronPDFConverter implements PDFConversionService, ResourceAcces
 	@Override
 	public PDDocument createPDF(Document html, PrintOptions options) {
 		//:kekA: options ignored
-		String url  = server.uploadDocument(html);
-		byte[] pdf  = proxy.requestConversionFor(url)[0];
+		String url = server.uploadDocument(html);
+		byte[] pdf = proxy.requestConversionFor(url)[0];
 		try {
 			return PDDocument.load(pdf);
 		} catch (IOException e) {
@@ -55,4 +55,5 @@ public class ElectronPDFConverter implements PDFConversionService, ResourceAcces
 		worker.shutdown();
 		server.close();
 	}
+
 }

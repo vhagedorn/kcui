@@ -57,10 +57,13 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 							}
 						}
 
-						override fun keyTyped(e: KeyEvent) {
+						override fun keyPressed(e: KeyEvent) {
 							if (e.isControlDown)
-								if (e.keyChar == 'S') // don't modify on save
+								if (e.keyCode == KeyEvent.VK_S) {
+									e.consume()
+									save()
 									return
+								}
 							modified = true
 						}
 					})
@@ -86,7 +89,7 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 			field = value
 		}
 
-	var modified = true
+	var modified = false
 		set(value) {
 			if (value)
 				showSaveIndicator = true
@@ -98,7 +101,7 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 	private lateinit var groupSelector: JComboBox<Group>
 
 	private lateinit var pronounciations: ResizableInputList<SpokenElement?>
-	private lateinit var grammar: ResizableInputList<PartOfSpeech?>
+	private lateinit var grammar: ResizableInputList<LinguisticElement?>
 	private lateinit var definitions: ResizableInputList<LinguisticElement?>
 
 	private val timer = Timer(1000) {
@@ -119,9 +122,9 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 	}
 
 	fun save() {
-		modified = true
+		modified = false
 		showSaveIndicator = false
-		if(last.code != card.hash() || card.location != last) // if the card has moved, then delete the previous one
+		if (last.code != card.hash() || card.location != last) // if the card has moved, then delete the previous one
 			kt.ctx.delete(last.code, last)
 		val k = gather()
 		card = k
@@ -259,9 +262,9 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 						panel {
 							gridBagLayout {
 								grammar = resizableInputList(frame, "Grammar") {
-									val variant = comboBox<EnumeratedItem<String>>(it?.variants ?: emptyList()) {
+									val variant = comboBox<EnumeratedItem<String>>(PartOfSpeech.fromLinguistic(it)?.variants ?: emptyList()) {
 										attr {
-											selectedItem = it?.variants?.firstOrNull()
+											selectedIndex = PartOfSpeech.variantFromLinguistic(it)
 											isEnabled = selectedItem != null
 											addActionListener {
 												modified = true
@@ -273,7 +276,7 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 														  )
 									{
 										attr {
-											selectedItem = it
+											selectedItem = PartOfSpeech.fromLinguistic(it)
 											if (it == null) // we cannot have a null row here
 												selectedIndex = 0
 											addActionListener {
@@ -349,6 +352,9 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 	private lateinit var last: CardLocation
 
 	fun populate(k: Card) {
+		modified = false
+		showSaveIndicator = false
+
 		card = k
 		last = CardLocation(k.hash(), k.location)
 		kanjiArea.text = k.describeJapanese()
@@ -377,7 +383,7 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 				k.setGrammar(PartOfSpeech.NOUN.asLinguistic())
 			k.grammar
 		})
-			grammar.createLine(PartOfSpeech.fromLinguistic(pos))
+			grammar.createLine(pos)
 
 		//pronounciations
 		pronounciations.clear()
@@ -410,7 +416,7 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 		k.setEnglish(*def.toTypedArray())
 
 		//grammar
-		val pos = mutableMapOf<PartOfSpeech, LinguisticElement>()
+		val pos = mutableListOf<Pair<PartOfSpeech, LinguisticElement>>()
 		for (elem in grammar.components) {
 			elem as JPanel
 
@@ -418,9 +424,13 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 			val part = (elem.components[1]!! as JComboBox<PartOfSpeech>).selectedItem as PartOfSpeech
 
 			// choose more specific PoS if applicable
-			pos[part] = part.asLinguistic((variant.selectedItem as EnumeratedItem<String>?)?.index ?: PartOfSpeech.NO_VARIANT)
+			pos += part to part.asLinguistic((variant.selectedItem as EnumeratedItem<String>?)?.index ?: PartOfSpeech.NO_VARIANT)
 		}
-		k.setGrammar(*pos.keys.distinctBy { it.name }.sortedBy { it.ordinal }.map { pos[it] }.toTypedArray())
+		k.setGrammar(*pos
+			.sortedWith(compareBy<Pair<PartOfSpeech, LinguisticElement>> { it.first.ordinal }.thenBy { PartOfSpeech.variantFromLinguistic(it.second) })
+			.map { it.second }
+			.distinctBy { it.describe() }
+			.toTypedArray())
 
 		//pronounciations
 		val pron = mutableListOf<SpokenElement>()

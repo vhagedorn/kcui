@@ -38,7 +38,7 @@ public class JvppetteerPreviewConverter implements PreviewConversionService {
 	public JvppetteerPreviewConverter(int port, ExecutorService worker) {
 		this.worker = worker;
 		try {
-			this.server = new StaticFileServer(port, "/v2");
+			this.server = new StaticFileServer(port, true, "/v2");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -65,8 +65,8 @@ public class JvppetteerPreviewConverter implements PreviewConversionService {
 	@Override
 	public BufferedImage createPreview(Document html, PrintOptions options) {
 		try {
-			File tmp = File.createTempFile("puppeteer", "png");
-			Page    page    = browser.newPage();
+			File tmp  = File.createTempFile("puppeteer", "png");
+			Page page = browser.newPage();
 			page.goTo(server.uploadDocument(html), true);
 
 			Viewport vp = new Viewport();
@@ -85,16 +85,16 @@ public class JvppetteerPreviewConverter implements PreviewConversionService {
 			tmp.deleteOnExit();
 
 			return ImageIO.read(tmp);
-		}catch (IOException e){
+		} catch (IOException e) {
 			throw new RuntimeException(e);
-		} catch (InterruptedException e){
+		} catch (InterruptedException e) {
 			return null;
 		}
 	}
 
 	@Override
 	public CompletableFuture<BufferedImage> screenshotJob(Document html, PrintOptions options) {
-		return CompletableFuture.supplyAsync(() -> createPreview(html ,options), worker);
+		return CompletableFuture.supplyAsync(() -> createPreview(html, options), worker);
 	}
 
 	@Override
@@ -103,4 +103,5 @@ public class JvppetteerPreviewConverter implements PreviewConversionService {
 		server.close();
 		browser.close();
 	}
+
 }

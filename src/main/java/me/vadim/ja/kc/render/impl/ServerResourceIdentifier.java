@@ -24,4 +24,5 @@ public class ServerResourceIdentifier {
 		this.resourceURL = resourceURL;
 		this.charset     = charset;
 	}
+
 }

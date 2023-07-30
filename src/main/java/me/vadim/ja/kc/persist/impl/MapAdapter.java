@@ -24,10 +24,12 @@ public class MapAdapter extends XmlAdapter<MapAdapter.AdaptedMap, Map<String, Cu
 
 	@XmlType(namespace = "map")
 	public static class Entry {
+
 		@XmlAttribute
 		public String key;
 		@XmlElement
 		public Curr value;
+
 	}
 
 	@Override

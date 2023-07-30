@@ -37,9 +37,12 @@ public class LibCtx implements LibraryContext {
 
 	public LibCtx() {
 		Library lib = JAXBStorage.readLib(libfile);
-		if(lib == null)
+		if (lib == null) {
 			lib = new Lib();
+			System.out.println("Created new library.");
+		}
 		this.library = lib;
+		System.out.println(lib);
 	}
 
 	@Override
@@ -50,7 +53,7 @@ public class LibCtx implements LibraryContext {
 	public static void launch(File file) {
 		try {
 			Desktop.getDesktop().open(file);
-		} catch (IOException ignored) {}
+		} catch (IOException ignored) { }
 	}
 
 	FlashcardPipeline pipeline;
@@ -77,7 +80,7 @@ public class LibCtx implements LibraryContext {
 	@Override
 	public void submit(Card kanji, int renderOpts) {
 		lazy();
-		System.out.println("generating " + kanji.toString());
+		System.out.println("generating " + kanji.toPreviewString());
 
 		try {
 			File dir = new File("out");
@@ -111,14 +114,14 @@ public class LibCtx implements LibraryContext {
 		lazy();
 		List<Card> toRender = groups.stream().flatMap(it -> library.getCards(it).stream()).collect(Collectors.toList());
 		List<CompletableFuture<PDDocument>> tasks = toRender.stream()
-																	  .map(it -> CompletableFuture.supplyAsync(() -> pipeline.createFlashcardPDF(it, renderOpts), worker))
-																	  .map(it -> it.thenApply(bytes -> {
-																		  try {
-																			  return PDDocument.load(bytes);
-																		  } catch (IOException e) {
-																			  throw new RuntimeException(e);
-																		  }
-																	  })).collect(Collectors.toList());
+															.map(it -> CompletableFuture.supplyAsync(() -> pipeline.createFlashcardPDF(it, renderOpts), worker))
+															.map(it -> it.thenApply(bytes -> {
+																try {
+																	return PDDocument.load(bytes);
+																} catch (IOException e) {
+																	throw new RuntimeException(e);
+																}
+															})).collect(Collectors.toList());
 		return CompletableFuture.allOf(tasks.toArray(CompletableFuture[]::new))
 								.thenApplyAsync(x -> {
 									List<PDDocument> pdfs = tasks.stream().map(CompletableFuture::join).collect(Collectors.toList());
@@ -147,7 +150,7 @@ public class LibCtx implements LibraryContext {
 
 	@Override
 	public void save(Card kanji) {
-		System.out.println("Saving " + kanji + " to " + JAXBStorage.card2file(kanji));
+		System.out.println("Saving " + kanji.toPreviewString() + " to " + JAXBStorage.card2file(kanji));
 		JAXBStorage.dumpCard(kanji);
 		JAXBStorage.dumpLib(library, libfile);
 	}
@@ -166,10 +169,11 @@ public class LibCtx implements LibraryContext {
 	@Override
 	public void delete(Card kanji) {
 		JAXBStorage.card2file(kanji).delete();
+		library.unlinkCard(kanji);
 	}
 
 	@Override
-	public void delete(Curriculum curriculum){
+	public void delete(Curriculum curriculum) {
 		library.unlinkCurriculum(curriculum);
 	}
 
@@ -179,8 +183,8 @@ public class LibCtx implements LibraryContext {
 	}
 
 	@Override
-	public void shutdown(){
-		if(pipeline != null)
+	public void shutdown() {
+		if (pipeline != null)
 			pipeline.close();
 	}
 

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author vadim
@@ -27,7 +28,7 @@ public class Lib implements Library {
 	@XmlAttribute
 	private String author;
 
-	Lib() {}
+	Lib() { }
 
 	Lib(String author) {
 		setAuthor(author);
@@ -57,6 +58,11 @@ public class Lib implements Library {
 	@Override
 	public void unlinkCurriculum(Curriculum curriculum) {
 		curriculums.remove(curriculum.getName());
+	}
+
+	@Override
+	public void unlinkCard(Card card) {
+		cards.get(card.getLocation()).remove(card);
 	}
 
 	@Override
@@ -109,11 +115,11 @@ public class Lib implements Library {
 
 	@Override
 	public String toString() {
-		return new StringBuilder(author).append("'s Library")
-										.append(" ( ")
-										.append(cards.values().size()).append(" card(s) in ").append(curriculums.size()).append(" curriculum(s)")
-										.append(" ) ")
-										.toString();
+		return new StringBuilder(Optional.ofNullable(author).orElse("Anonymous")).append("'s Library")
+																				 .append(" ( ")
+																				 .append(cards.values().size()).append(" card(s) in ").append(curriculums.size()).append(" curriculum(s)")
+																				 .append(" )")
+																				 .toString();
 	}
 
 }

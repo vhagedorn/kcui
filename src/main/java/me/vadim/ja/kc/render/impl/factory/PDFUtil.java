@@ -36,21 +36,20 @@ public final class PDFUtil {
 	 * Export a {@link PDDocument PDF} to the disk.
 	 * <p>The provided {@link PDDocument PDF} is <b>closed</b> after reading.
 	 *
-	 * @param doc the source {@link PDDocument document}
+	 * @param doc  the source {@link PDDocument document}
 	 * @param file the destination {@link File}; the file and necessary directories will be created if not already present
-	 *
 	 */
 	public static void export(PDDocument doc, File file) {
 		try (doc) {
-			if(doc.getDocument().isClosed())
+			if (doc.getDocument().isClosed())
 				throw new IllegalArgumentException("Document " + doc + " already closed!");
 
-			if(!file.isFile()) {
+			if (!file.isFile()) {
 				file.getParentFile().mkdirs();
 				file.createNewFile();
 			}
-			if(!file.isFile())
-				throw new IllegalArgumentException("File "+file+" is inaccessible.");
+			if (!file.isFile())
+				throw new IllegalArgumentException("File " + file + " is inaccessible.");
 
 			doc.save(file);
 		} catch (IOException e) {

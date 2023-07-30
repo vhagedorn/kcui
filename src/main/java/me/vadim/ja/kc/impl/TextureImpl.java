@@ -56,4 +56,5 @@ class TextureImpl implements Texture {
 	public Icon asIcon() {
 		return new ImageIcon(cached);
 	}
+
 }

@@ -28,21 +28,21 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 
 	public static final int PREFERRED_SIZE_X = 820;
 	public static final int PREFERRED_SIZE_Y = 575;
-	public static final int MINIMUM_SIZE_X   = 725;
-	public static final int MINIMUM_SIZE_Y   = 500;
+	public static final int MINIMUM_SIZE_X = 725;
+	public static final int MINIMUM_SIZE_Y = 500;
 
 	public static ExecutorService threadPool(String nameFormat) {
 		return LocalExecutors.newExtendedThreadPool(new ThreadFactoryBuilder()
-													 .setDaemon(true)
-													 .setNameFormat(nameFormat)
-													 .build());
+															.setDaemon(true)
+															.setNameFormat(nameFormat)
+															.build());
 	}
 
 	public static ExecutorService singleThread(String nameFormat) {
 		return LocalExecutors.newExtendedThreadPool(new ThreadFactoryBuilder()
-														 .setDaemon(false)
-														 .setNameFormat(nameFormat)
-														 .build());
+															.setDaemon(false)
+															.setNameFormat(nameFormat)
+															.build());
 	}
 
 	@SuppressWarnings("FieldCanBeLocal")
@@ -97,6 +97,7 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 			if (buf == null) throw new UnsupportedOperationException("call load() first");
 			return new String(buf, StandardCharsets.UTF_8);
 		}
+
 	}
 
 	public KanjiCardUI() throws IOException {
@@ -113,12 +114,12 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 			license_html = new TextResource("LICENSE.html");
 			kt.setLicense(license_html.asString());
 
-			back_html  = new TextResource("doc/back.html", "template/back_side_card.html");
+			back_html = new TextResource("doc/back.html", "template/back_side_card.html");
 			back_html.copyOrLoad();
 			front_html = new TextResource("doc/front.html", "template/frontside_card.html");
 			front_html.copyOrLoad();
 
-			Generator.back = back_html.asString();
+			Generator.back  = back_html.asString();
 			Generator.front = front_html.asString();
 
 			printing_css = new TextResource("doc/printing.css", "template/card_stylesheet.css");
@@ -138,7 +139,7 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 		System.out.println("\tby Vadim Hagedorn @ March 2023");
 		System.out.println();
 
-//		setup();
+		setup();
 	}
 
 	private void setup() {
@@ -151,8 +152,13 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
+				System.out.print("Cleaning up");
+				System.out.print('.');
 				e.getWindow().setVisible(false);
-				kt.getCtx().shutdown();
+				System.out.print('.');
+				kt.shutdown();
+				System.out.print('.');
+				System.out.println(" done.");
 			}
 		});
 //		setUndecorated(true);
@@ -233,7 +239,7 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 
 		private final JFrame frame;
 
-		private Point     pressedPoint;
+		private Point pressedPoint;
 		private Rectangle frameBounds;
 
 		public FrameDragListener(JFrame frame) {
@@ -265,6 +271,7 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 			frameBounds.y += yDiff;
 			frame.setBounds(frameBounds);
 		}
+
 	}
 
 }

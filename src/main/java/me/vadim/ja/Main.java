@@ -8,11 +8,6 @@ import me.vadim.ja.kc.KanjiCardEnvironment;
 public final class Main {
 
 	public static void main(String[] args) throws Exception {
-//		test.main(args);
-//		test.threading();
-//		test.preview();
-//		if(true)
-//			return;
 		ApplicationEnvironment env = new KanjiCardEnvironment();
 		System.out.println("Preparing environment.");
 		env.preInit();

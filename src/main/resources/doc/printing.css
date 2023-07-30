@@ -41,7 +41,7 @@
 
 /* general definitions */
 .reset {
-	all: inital;
+	all: revert;
 }
 body {
 	margin: 0;

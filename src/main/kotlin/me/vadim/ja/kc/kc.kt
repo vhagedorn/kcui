@@ -51,4 +51,5 @@ fun GridBagLayoutRootScope<*>.row(y: Int, block: GridBagLayoutCellScope<*>.() ->
 fun <T> GridBagLayoutRootScope<*>.resizableInputList(
 	frame: JFrame,
 	label: String,
-	eachRow: CanAddChildrenScope<*>.(x: T?) -> Unit) = ResizableInputList(this, frame, label, eachRow)
+	eachRow: CanAddChildrenScope<*>.(x: T?) -> Unit
+													) = ResizableInputList(this, frame, label, eachRow)

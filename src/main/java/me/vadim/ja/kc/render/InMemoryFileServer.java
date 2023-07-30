@@ -14,7 +14,9 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -22,14 +24,39 @@ import java.util.regex.Pattern;
  */
 public class InMemoryFileServer implements ResourceAccess {
 
-	private final HttpServer                server;
-	private final int                       port;
-	private final Map<String, Handler>      handlers = new HashMap<>();
+	private final HttpServer server;
+	private final int port;
+	private final Map<String, Handler> handlers = new HashMap<>();
 
-	public InMemoryFileServer(int port) throws IOException {
+	public InMemoryFileServer(int port, boolean showIndex) throws IOException {
 		this.port   = port;
 		this.server = HttpServer.create(new InetSocketAddress(port), 0);
 		this.server.start();
+
+//		if (showIndex)
+//			putResource("/index.html", new ServerResource("index.html", "How did you get here?\nWell, this is the static file server for the preview and PDF generation.\nLook in stdout for GET requests :)", "text/plain"));
+////			putResource("/", new ServerResource("index.html", "null", "text/html") {
+////				@Override
+////				public byte[] getSnapshot() {
+////					String url = "https://localhost:"+InMemoryFileServer.this.port;
+////					StringBuilder html = new StringBuilder();
+////					for (Handler value : handlers.values()) {
+////						for (Map.Entry<String, ServerResource> entry : value.resources.entrySet()) {
+////							String name = entry.getValue().getName();
+////							//<a href="path">name</a>
+////							html
+////									.append("<p><a")
+////									.append(" href=").append('"').append(url).append(value.path).append(name).append('"')
+////									.append(">")
+////									.append(entry.getValue().getName())
+////									.append("</a></p>")
+////									.append("\n");
+////						}
+////					}
+////					System.out.println(html);
+////					return html.toString().getBytes(StandardCharsets.UTF_8);
+////				}
+////			});
 	}
 
 	public String getURL() {
@@ -39,21 +66,21 @@ public class InMemoryFileServer implements ResourceAccess {
 	public static boolean dump = false;
 
 	public String putResource(String path, ServerResource resource) {
-		if(dump)
+		if (dump)
 			try {
 				File dumpDir = new File("dump", path);
-				if(!dumpDir.isDirectory())
+				if (!dumpDir.isDirectory())
 					dumpDir.mkdirs();
-				if(dumpDir.isDirectory())
+				if (dumpDir.isDirectory())
 					Files.write(new File(dumpDir, resource.getName()).toPath(), resource.getSnapshot());
-			} catch (IOException e){
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 
 		String subpath = resource.getName();
 
 		if (subpath.startsWith("/"))
-			subpath = subpath.substring(0, subpath.length()-1);
+			subpath = subpath.substring(0, subpath.length() - 1);
 
 		if (!path.startsWith("/"))
 			path = '/' + path;
@@ -104,8 +131,8 @@ public class InMemoryFileServer implements ResourceAccess {
 
 	private class Handler extends HttpAdapter {
 
-		final String                      path;
-		final HttpContext                 context;
+		final String path;
+		final HttpContext context;
 		final Map<String, ServerResource> resources = new HashMap<>();
 
 		Handler(String path) {
@@ -135,6 +162,7 @@ public class InMemoryFileServer implements ResourceAccess {
 					resource.getSnapshot(),
 					HttpURLConnection.HTTP_OK);
 		}
+
 	}
 
 	public void close() {

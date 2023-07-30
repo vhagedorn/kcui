@@ -3,9 +3,12 @@ package me.vadim.ja.kc.view
 import me.vadim.ja.kc.KCIcon
 import me.vadim.ja.kc.KCTheme
 import me.vadim.ja.kc.KanjiCardUIKt
+import me.vadim.ja.kc.persist.io.JAXBStorage
+import me.vadim.ja.kc.persist.wrapper.Card
 import me.vadim.ja.kc.persist.wrapper.Curriculum
 import me.vadim.ja.kc.view.dialog.About
 import me.vadim.ja.kc.view.dialog.CurriculumExportDialog
+import me.vadim.ja.kc.view.dialog.ImportDialog
 import me.vadim.ja.kc.view.dialog.License
 import java.awt.Container
 import java.awt.Toolkit
@@ -78,6 +81,15 @@ class Toolbar(private val kt: KanjiCardUIKt, private val license: License, priva
 		}
 
 		menu("File") {
+			item("Import...") {
+				attr {
+					accelerator = KeyStroke.getKeyStroke(KeyEvent.VK_I, Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx)
+					mnemonic = KeyEvent.VK_I
+				}
+				onAction {
+					ImportDialog(kt)
+				}
+			}
 			subMenu("Export") {
 				attr {
 					mnemonic = KeyEvent.VK_E
@@ -179,5 +191,10 @@ class Toolbar(private val kt: KanjiCardUIKt, private val license: License, priva
 	class ItemScope(self: JMenuItem) : Scope<JMenuItem>(self) {
 
 		fun onAction(block: (ActionEvent) -> Unit) = self.addActionListener(block)
+	}
+
+	fun dispose() {
+		license.dispose()
+		about.dispose()
 	}
 }

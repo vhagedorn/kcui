@@ -1,5 +1,6 @@
 package me.vadim.ja.kc.persist.impl;
 
+import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import me.vadim.ja.kc.persist.wrapper.Curriculum;
 import me.vadim.ja.kc.persist.wrapper.Group;
@@ -10,11 +11,12 @@ import java.util.Objects;
 /**
  * @author vadim
  */
+@XmlRootElement(name = "group")
 public class Grp implements Group {
 
 	private String name;
 
-	Grp() {}
+	Grp() { }
 
 	@XmlTransient
 	Curr curr;
@@ -48,14 +50,24 @@ public class Grp implements Group {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(!(obj instanceof Group)) return false;
+		if (!(obj instanceof Group)) return false;
 		Group group = (Group) obj;
 		return Objects.equals(name, group.getName());
 	}
 
 	@Override
+	public int hashCode() {
+		return Objects.hashCode(name);
+	}
+
+	@Override
 	public String toString() {
 		return name;
+	}
+
+	@Override
+	public void createInParent(Curriculum curriculum) {
+		curriculum.addGroup(name);
 	}
 
 }

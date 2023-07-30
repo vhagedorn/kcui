@@ -14,9 +14,11 @@ import me.vadim.ja.kc.persist.impl.Location
 import me.vadim.ja.kc.persist.wrapper.Card
 import me.vadim.ja.kc.persist.wrapper.Curriculum
 import me.vadim.ja.kc.persist.wrapper.Group
+import me.vadim.ja.kc.util.Util
 import me.vadim.ja.kc.view.HistoryCtx
 import me.vadim.ja.swing.NaturalOrderComparator
 import me.vadim.ja.swing.SimpleTreeNode
+import org.checkerframework.checker.units.qual.g
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Toolkit
@@ -108,7 +110,7 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 	}
 
 	private fun selectAction(comp: Any, edit: Boolean, toggle: Boolean = false) {
-		if (edit) println("EDIT $comp")
+		if (edit) println("> Edit $comp")
 		if (comp !is Card) {
 			val path = tree.selectionPath
 			if (toggle)
@@ -278,7 +280,9 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 								label("Curriculum")
 								curriculumSelector = comboBox(kt.ctx.activeLibrary.curriculums.toMutableList().apply { add(PLACEHOLDER_CURRICULUM) }) {
 									attr {
-										selectedItem = null
+										selectedIndex = 0
+										if(selectedItem === PLACEHOLDER_CURRICULUM)
+											selectedItem = null
 										addActionListener {
 											var selected = self.selectedItem as Curriculum? ?: return@addActionListener
 											if (selected === PLACEHOLDER_CURRICULUM) {
@@ -314,17 +318,51 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 	}
 
 	fun populate(curriculum: Curriculum?) {
-		val root = SimpleTreeNode(curriculum, NaturalOrderComparator())
-		val nodes = mutableMapOf<Location, SimpleTreeNode>()
+		var root = tree.model.root
+		if(root !is SimpleTreeNode) { // not initialized
+			root = SimpleTreeNode(curriculum, NaturalOrderComparator())
+			tree.model = DefaultTreeModel(root)
+		}
+		if(root.userObject != curriculum) // clear & repopulate
+			root.userObject = curriculum
 
-		if (curriculum != null) {
-			for (group in curriculum.groups)
-				nodes[group.toLocation()] = SimpleTreeNode(group, NaturalOrderComparator()).also { root.add(it) }
-
-			for (k in kt.ctx.activeLibrary.getCards(curriculum)) // add all kanji which are in a group that is in the provided curriculum
-				nodes[k.location.group.toLocation()]?.add(SimpleTreeNode(k))
+		if(curriculum != null) {
+			curriculum.flatten()
+			kt.ctx.activeLibrary
+			val groups = curriculum.groups.toMutableList()
+			val toAdd = mutableListOf<Pair<DefaultMutableTreeNode, DefaultMutableTreeNode>>() // Pair<NewChild,AddTo>
+			for (node in Util.getChildren(root)) { // iterate over existing groups
+				val obj = node.userObject
+				if(obj is Card) // clear & readd
+					node.removeFromParent()
+				if (obj is Group) {
+					groups.remove(obj) // group is not new
+					for (card in kt.ctx.activeLibrary.getCards(obj)) // readd cards (group node should preserve expansion state)
+						toAdd += SimpleTreeNode(card) to node
+				}
+			}
+			for (group in groups) { // add new groups
+				val node = SimpleTreeNode(group, NaturalOrderComparator()).also { root.add(it) }
+				for (card in kt.ctx.activeLibrary.getCards(group))
+					toAdd += SimpleTreeNode(card) to node
+			}
+			toAdd.forEach {
+				it.second.add(it.first)
+			}
 		}
 
-		tree.model = DefaultTreeModel(root)
+		curriculumSelector.apply {
+			removeAllItems()
+			kt.ctx.activeLibrary.curriculums.toMutableList().apply { add(PLACEHOLDER_CURRICULUM) }.forEach {
+				addItem(it)
+			}
+			if(curriculum == null) {
+				selectedIndex = 0
+				if (selectedItem === PLACEHOLDER_CURRICULUM)
+					selectedItem = null
+			} else {
+				selectedItem = curriculum
+			}
+		}
 	}
 }

@@ -17,6 +17,8 @@ public interface Library {
 
 	void unlinkCurriculum(Curriculum curriculum);
 
+	void unlinkCard(Card card);
+
 	List<Curriculum> getCurriculums();
 
 	Card createCard(Location location);

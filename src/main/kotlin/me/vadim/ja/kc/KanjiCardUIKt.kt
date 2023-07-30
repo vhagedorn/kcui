@@ -34,6 +34,7 @@ import kotlin.math.roundToInt
 class KanjiCardUIKt(val frame: KanjiCardUI) {
 
 	companion object {
+
 		private const val EDITOR = "Editor"
 		private const val EXPLORER = "Explorer"
 	}
@@ -128,8 +129,13 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 	}
 
 	fun showFirstLaunch() {
-		if(ctx.activeLibrary.author == null)
+		if (ctx.activeLibrary.author == null)
 			author.display()
 	}
 
+	fun shutdown() {
+		author.dispose()
+		toolbar.dispose()
+		ctx.shutdown()
+	}
 }

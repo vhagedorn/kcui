@@ -48,7 +48,7 @@ The default `frontside_card.html` and `back_side_card.html` include dummy placeh
 #### back
 * `#diagrams` - stroke order diagrams are added as base64 `<img>` tags with class `.stroke-center`
 * `#pronounciation` - pronounciations are added as `<span>` tags inside a `<div>`, with classes `.psym` for the symbol ('⛛' for now), and `.pron` for the pronounciation value
-* `#type` - the element's value is set to the grammar string (parts of speech). The element
+* `#type` - the element's value is set to the grammar string (parts of speech)
 * `#definition` - children are cleared and definitions are added as unstyled `<li>` tags
 
 # API
@@ -59,7 +59,7 @@ After I explain how the flashcards are generated, I'll show you how you can inte
 ## Workflow
 
 1) Card data is stored in via SQLite3 in `library.db`, and images are cached in `render.cache` (it is safe to delete this image cache if it becomes large).
-2) Card is created via UI or loaded from DB. 
+2) Card is created (via UI or loaded from disk). 
 3) Templates are loaded (from this `templates` directory, or from the JAR's resources).
 4) HTML files are populated, filling in placeholders with actual data.
 5) HTML files are uploaded to an in-memory file server.
@@ -177,8 +177,7 @@ Inside the `/pdfexport` callback is where you would modify the HTML, print optio
 Right now, it's not possible to do much unless you host _another_ server with your modified files.
 I plan to add an upload endpoint to the in-memory server to ease modding, but it's not present right now.
 
-## Epilogue
+# Epilogue
 
-**PLEASE DON'T USE THIS "API".** Modify the templates to your liking, and please them to me as I am not a CSS wizard.
+**PLEASE DON'T USE THIS "API".** However, modify the templates is highly encouraged (and please them to me as I suck at HTML/CSS).
 I put this here because I can't help myself, but it was never intended to be used. My only hope is that it might help me remember how my code works in the future.
-

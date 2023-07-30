@@ -103,8 +103,8 @@ class ResizableInputList<T>(
 		//todo: the issue is that it will "snap" to minimum size if it exceeds the space it has available
 		//todo: this works alright, however; so i'm done fighting it for now
 		list.parent.apply {
-			minimumSize = Dimension(preferredSize.width, preferredSize.height*3)
-			maximumSize = Dimension(preferredSize.width*3, preferredSize.height*5)
+			minimumSize = Dimension(preferredSize.width, preferredSize.height * 3)
+			maximumSize = Dimension(preferredSize.width * 3, preferredSize.height * 5)
 		}
 	}
 
@@ -139,5 +139,4 @@ class ResizableInputList<T>(
 		frame.revalidate()
 		frame.repaint()
 	}
-
 }

@@ -45,22 +45,25 @@ public final class JAXBStorage {
 	}
 
 	private static File location2file(Location location) {
-		if(location.getGroup() != null && location.getCurriculum() == null) // handle floating groups
+		if (location.getGroup() != null && location.getCurriculum() == null) // handle floating groups
 			return new File(freeDir, location.getGroup().getName());
 
 		File file = cardDir;
-		if(location.getCurriculum() != null)
+		if (location.getCurriculum() != null)
 			file = new File(file, location.getCurriculum().getName());
 
-		if(location.getGroup() != null)
+		if (location.getGroup() != null)
 			file = new File(file, location.getGroup().getName());
 
 		return file;
 	}
 
 	public static Card readCard(Location location, HashCode code) {
+		return readCard(card2file(location, code));
+	}
+
+	public static Card readCard(File file) {
 		try {
-			File file = card2file(location, code);
 			if (file.isFile()) {
 				JAXBContext  context = JAXBContext.newInstance(Kard.class);
 				Unmarshaller umar    = context.createUnmarshaller();
@@ -68,7 +71,7 @@ public final class JAXBStorage {
 				return (Card) umar.unmarshal(new FileReader(file));
 			}
 		} catch (JAXBException e) {
-			System.err.println("Problem reading card: " + code.toString());
+			System.err.println("Problem reading card: " + file);
 			e.printStackTrace();
 			// todo: static UI error message queue
 		} catch (FileNotFoundException ignored) {

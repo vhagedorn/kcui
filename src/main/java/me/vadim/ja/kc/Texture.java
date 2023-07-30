@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 
 /**
  * Represents a resizable {@link java.awt.Image} wrapped in an {@link Icon}.
+ *
  * @author vadim
  */
 public interface Texture {
@@ -21,6 +22,7 @@ public interface Texture {
 
 	/**
 	 * Resize the image, ignoring aspect ratio.
+	 *
 	 * @param w new width
 	 * @param h new height
 	 */
@@ -28,12 +30,14 @@ public interface Texture {
 
 	/**
 	 * Resize the image, preserving aspect ratio.
+	 *
 	 * @param w new width
 	 */
 	Texture withWidth(int w);
 
 	/**
 	 * Resize the image, preserving aspect ratio.
+	 *
 	 * @param h new height
 	 */
 	Texture withHeight(int h);

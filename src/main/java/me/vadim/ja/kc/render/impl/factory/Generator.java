@@ -17,7 +17,7 @@ public class Generator implements ResourceAccess {
 
 	@SuppressWarnings("StaticNonFinalField")
 	public static String
-			back  = null,
+			back = null,
 			front = null;
 
 	public final Card kanji;

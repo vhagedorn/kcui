@@ -97,7 +97,7 @@ class ResizableInputTable<T>(
 		}
 	}
 
-	fun clear(){
+	fun clear() {
 		val list = property.getter.call()
 		list.removeAll()
 		frame.revalidate()
@@ -126,15 +126,14 @@ class ResizableInputTable<T>(
 		var idx = i
 		val list = property.getter.call()
 
-		if(idx < 0)
+		if (idx < 0)
 			idx = list.componentCount - 1
 
-		if(idx > -1 && idx < list.componentCount && list.componentCount > 1)
+		if (idx > -1 && idx < list.componentCount && list.componentCount > 1)
 			list.remove(idx)
 		else if (i != -1)
 			throw IllegalArgumentException("Unable to remove index $i from list with len=${list.components}.")
 
 		frame.revalidate()
 	}
-
 }

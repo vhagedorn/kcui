@@ -25,11 +25,11 @@ public class DiagramCreator {
 		ACROSS = X = x = "across";
 	}
 
-	public final String  exec;
-	public final short   dpi;
+	public final String exec;
+	public final short dpi;
 	public final boolean drawFullKanji;
-	public final byte    wrapAt;
-	public final String  orientation;
+	public final byte wrapAt;
+	public final String orientation;
 
 	//smaller primitives to ensure long will pack
 	public DiagramCreator(String exec, int dpi, boolean drawFullKanji, int wrapAt, String orientation) {
@@ -40,7 +40,7 @@ public class DiagramCreator {
 		this.orientation   = orientation;
 	}
 
-	public DiagramCreator withOptions(int bitmask){
+	public DiagramCreator withOptions(int bitmask) {
 		return DiagramCreator.fromBitmask(bitmask, this.exec);
 	}
 

@@ -18,8 +18,8 @@ public class StaticFileServer extends InMemoryFileServer {
 
 	private final String uploadPath;
 
-	public StaticFileServer(int port, String uploadPath, ServerResourceIdentifier... identifiers) throws IOException {
-		super(port);
+	public StaticFileServer(int port, boolean showIndex, String uploadPath, ServerResourceIdentifier... identifiers) throws IOException {
+		super(port, showIndex);
 		this.uploadPath = uploadPath;
 		for (ServerResourceIdentifier sri : identifiers) {
 			try (InputStream is = loadResource(sri.resourceURL)) {
@@ -30,7 +30,7 @@ public class StaticFileServer extends InMemoryFileServer {
 		}
 	}
 
-	public void resetSession(){
+	public void resetSession() {
 		super.deletePath(uploadPath);
 	}
 
@@ -38,7 +38,7 @@ public class StaticFileServer extends InMemoryFileServer {
 	private final DateFormat df = new SimpleDateFormat("MM.yy-HH.mm.ss");
 
 	private String uid() {
-		return df.format(Calendar.getInstance().getTime()) + "_"+id.getAndIncrement()+".html";
+		return df.format(Calendar.getInstance().getTime()) + "_" + id.getAndIncrement() + ".html";
 	}
 
 	public String uploadDocument(Document html) {

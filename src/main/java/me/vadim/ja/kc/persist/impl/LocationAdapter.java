@@ -9,7 +9,7 @@ public class LocationAdapter extends XmlAdapter<String, Location> {
 
 	@Override
 	public Location unmarshal(String v) throws Exception {
-		if(Location.EMPTY.equals(v))
+		if (Location.EMPTY.equals(v))
 			return Location.NONE;
 
 		if (v == null || v.isBlank())

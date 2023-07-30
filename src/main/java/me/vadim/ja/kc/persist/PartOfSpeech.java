@@ -11,9 +11,9 @@ import java.util.List;
  */
 public enum PartOfSpeech {
 
-	NOUN, // todo "proper" variant?
+	NOUN("proper"),
 	PRONOUN, // todo pronoun as noun variant?
-	VERB("godan", "ichidan", "irregular", "auxiliary"),
+	VERB("godan", "ichidan", "irregular", "auxiliary", "transitive", "intransitive"),
 	ADVERB,
 	ADJECTIVE,
 	PARTICLE,
@@ -41,11 +41,17 @@ public enum PartOfSpeech {
 
 	public static final int NO_VARIANT = -1;
 
+	/* noun variants */
+
+	public static final int NOUN_PROPER = 0;
+
 	/* verb variants */
 	public static final int VERB_GODAN = 0;
 	public static final int VERB_ICHIDAN = 1;
 	public static final int VERB_IRREGULAR = 2;
 	public static final int VERB_AUXILIARY = 3;
+	public static final int VERB_TRANSITIVE = 4;
+	public static final int VERB_INTRANSITIVE = 5;
 
 	public LinguisticElement asLinguistic() {
 		return asLinguistic(NO_VARIANT);
@@ -77,15 +83,29 @@ public enum PartOfSpeech {
 	// "variant part" -> "part"
 	// "grammar" -> "grammar"
 	public static PartOfSpeech fromLinguistic(LinguisticElement linel) {
-		if(linel == null)
+		if (linel == null)
 			return null;
 		String[] split = linel.describe().split(" ");
-		if(split.length == 0)
+		if (split.length == 0)
 			return null;
 		for (PartOfSpeech value : values())
 			if (value.asLinguistic().describe().equals(split[split.length - 1]))
 				return value;
 		return null;
+	}
+
+	public static int variantFromLinguistic(LinguisticElement linel) {
+		if (linel == null)
+			return NO_VARIANT;
+		String[] split = linel.describe().split(" ");
+		if (split.length == 0)
+			return NO_VARIANT;
+		for (PartOfSpeech value : values())
+			if (value.asLinguistic().describe().equals(split[split.length - 1]))
+				for (int i = 0; i < value.variants.length; i++)
+					if(value.variants[i].equals(split[0]))
+						return i;
+		return NO_VARIANT;
 	}
 
 }

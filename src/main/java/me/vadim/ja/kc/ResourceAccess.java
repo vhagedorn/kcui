@@ -15,7 +15,7 @@ public interface ResourceAccess {
 		try {
 			if (resource != null)
 				return resource.openStream();
-		} catch (IOException ignored) {}
+		} catch (IOException ignored) { }
 		return null;
 	}
 

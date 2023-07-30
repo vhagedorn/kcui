@@ -10,7 +10,7 @@ public class SpeakAdapter extends XmlAdapter<String, Speak> {
 
 	@Override
 	public Speak unmarshal(String v) throws Exception {
-		if(v == null || v.isBlank())
+		if (v == null || v.isBlank())
 			throw new IllegalArgumentException(v == null ? null : "(empty)");
 
 		return new Speak(v.substring(1), PronounciationType.fromID(Integer.parseInt(String.valueOf(v.charAt(0)))));

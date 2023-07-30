@@ -9,19 +9,20 @@ import java.io.InputStream;
  */
 public final class KCTheme {
 
-	public static Icon getButtonIcon(Texture icon){
+	public static Icon getButtonIcon(Texture icon) {
 		return icon.withSize(22, 22).asIcon();
 	}
 
 	public static final boolean DEFAULT_ICON_INVERT_STATE = true;
 
 	public static final Font JP_FONT;
+
 	static {
 		Font custom;
 		try {
 			InputStream resource = KCTheme.class.getClassLoader().getResourceAsStream("font/SawarabiMincho Regular 400.ttf");
 			custom = Font.createFont(Font.TRUETYPE_FONT, resource);
-		} catch (Exception e){
+		} catch (Exception e) {
 			System.err.println("WARN: Unable to load custom font. Defaulting to system font.");
 			custom = new JLabel().getFont();
 		}

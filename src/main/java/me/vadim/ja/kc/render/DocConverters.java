@@ -64,7 +64,7 @@ public final class DocConverters {
 		return (1.0 / unitToPixels.get(targetUnit)) * pixels;
 	}
 
-	private DocConverters() {}
+	private DocConverters() { }
 
 	public static final int PORT = 8225;
 	public static final int PORT2 = 8371;
@@ -72,23 +72,23 @@ public final class DocConverters {
 	@SuppressWarnings("StaticNonFinalField")
 	public static String printing_css = null;
 
-	public static void putPrintingCss(InMemoryFileServer server){
-		if(printing_css == null)
+	public static void putPrintingCss(InMemoryFileServer server) {
+		if (printing_css == null)
 			throw new NullPointerException("printing_css unset");
 		server.putResource("/css", new ServerResource("printing.css", printing_css, "text/css"));
 	}
 
 	private static final ExecutorService worker = KanjiCardUI.threadPool("HTML conversion worker %d");
 
-	public static PDFConversionService print_electron(String convertURL){
+	public static PDFConversionService print_electron(String convertURL) {
 		return new ElectronPDFConverter(PORT, convertURL, worker);
 	}
 
-	public static PDFConversionService print_jvppetteer(){
+	public static PDFConversionService print_jvppetteer() {
 		return new JvppetteerPDFConverter(PORT, worker);
 	}
 
-	public static PreviewConversionService preview_jvppetteer(){
+	public static PreviewConversionService preview_jvppetteer() {
 		return new JvppetteerPreviewConverter(PORT2, worker);
 	}
 

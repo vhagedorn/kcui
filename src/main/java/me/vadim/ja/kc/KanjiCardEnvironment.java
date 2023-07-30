@@ -14,7 +14,8 @@ public class KanjiCardEnvironment implements ApplicationEnvironment {
 
 	@Override
 	public void preInit() {
-		System.out.print("Loading FlatLaf.");
+		System.out.print("Loading FlatLaf");
+		System.out.print('.');
 		System.setProperty("flatlaf.useWindowDecorations", "true");
 		System.setProperty("flatlaf.menuBarEmbedded", "true");
 		System.out.print('.');
@@ -35,4 +36,5 @@ public class KanjiCardEnvironment implements ApplicationEnvironment {
 	public void cleanUp() {
 		System.out.println("Goodbye.");
 	}
+
 }

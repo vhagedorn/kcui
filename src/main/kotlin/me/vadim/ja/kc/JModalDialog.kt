@@ -23,5 +23,4 @@ abstract class JModalDialog(private val ow: Window) : JDialog(ow, ModalityType.M
 		setLocationRelativeTo(ow)
 		isVisible = true
 	}
-
 }

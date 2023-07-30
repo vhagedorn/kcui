@@ -53,15 +53,16 @@ public class PrintOptions implements ConvertOptions {
 		public PageSize withUnit(String unit) {
 			return new PSizeImpl(name, unit, (float) DocConverters.unitConvert(w + this.unit, unit), (float) DocConverters.unitConvert(h + this.unit, unit));
 		}
+
 	}
 
-	public static PrintOptions letter(){
+	public static PrintOptions letter() {
 		return new PrintOptions(new PSizeImpl("Letter", 8.5f, 11f),
 								new Margins("in", 1, 1, 1, 1),
 								false, true);
 	}
 
-	public static PrintOptions index(){
+	public static PrintOptions index() {
 		return new PrintOptions(new PSizeImpl("Index Card", 4f, 6f),
 								new Margins("in", .1f, .1f, .1f, .1f),
 								false, false);
@@ -69,13 +70,13 @@ public class PrintOptions implements ConvertOptions {
 
 	private final PageSize size;
 	private final Margins margins;
-	private final boolean  landscape;
-	private final boolean  printHeadersAndFooters;
+	private final boolean landscape;
+	private final boolean printHeadersAndFooters;
 
 	public PrintOptions(PageSize size, Margins margins, boolean landscape, boolean printHeadersAndFooters) {
-		this.size      = size;
-		this.margins   = margins;
-		this.landscape = landscape;
+		this.size                   = size;
+		this.margins                = margins;
+		this.landscape              = landscape;
 		this.printHeadersAndFooters = printHeadersAndFooters;
 	}
 

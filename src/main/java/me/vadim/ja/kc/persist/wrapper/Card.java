@@ -3,6 +3,8 @@ package me.vadim.ja.kc.persist.wrapper;
 import me.vadim.ja.kc.persist.Hashable;
 import me.vadim.ja.kc.persist.LinguisticElement;
 import me.vadim.ja.kc.persist.SpokenElement;
+import me.vadim.ja.kc.persist.decor.MultiLine;
+import me.vadim.ja.kc.persist.decor.SingleLine;
 import me.vadim.ja.kc.persist.impl.Location;
 
 /**
@@ -12,13 +14,13 @@ public interface Card extends Hashable {
 
 	Location getLocation();
 
-	LinguisticElement[] getJapanese();
+	@SingleLine LinguisticElement[] getJapanese();
 
-	LinguisticElement[] getEnglish();
+	@MultiLine LinguisticElement[] getEnglish();
 
-	LinguisticElement[] getGrammar();
+	@SingleLine LinguisticElement[] getGrammar();
 
-	SpokenElement[] getSpoken();
+	@MultiLine SpokenElement[] getSpoken();
 
 	void setLocation(Location location);
 
@@ -33,5 +35,13 @@ public interface Card extends Hashable {
 	String describeJapanese();
 
 	String describeGrammar();
+
+	String toPreviewString();
+
+	/**
+	 * Copies data but not location from {@code card}.
+	 * @param card same-impl {@link Card} instance
+	 */
+	void copyDataFrom(Card card);
 
 }

@@ -111,14 +111,31 @@ public class Kard implements Card {
 	}
 
 	@Override
+	public void copyDataFrom(Card card) {
+		if (!(card instanceof Kard))
+			throw new IllegalArgumentException(card.toPreviewString());
+		Kard kard = (Kard) card;
+		japanese = kard.japanese;
+		english  = kard.english;
+		grammar  = kard.grammar;
+		spoken   = kard.spoken;
+	}
+
+	@Override
 	public String toString() {
+		return describeJapanese();
+	}
+
+	@Override
+	public String toPreviewString() {
 		return new StringBuilder("Card")
+				.append("@").append(location)
 				.append(" { ")
 				.append("japanese=").append(join("", japanese)).append(", ")
 				.append("english=[").append(join("; ", english)).append("], ")
 				.append("grammar=").append(join(" or ", grammar)).append(", ")
 				.append("spoken=[").append(join(", ", spoken)).append("]")
-				.append(" } ")
+				.append(" }")
 				.toString();
 	}
 

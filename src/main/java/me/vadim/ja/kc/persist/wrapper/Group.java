@@ -1,6 +1,7 @@
 package me.vadim.ja.kc.persist.wrapper;
 
 import me.vadim.ja.kc.persist.impl.Location;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * @author vadim
@@ -14,5 +15,11 @@ public interface Group {
 	Curriculum getCurriculum();
 
 	Location toLocation();
+
+	/**
+	 * Creates a new group with the same name in {@code curriculum}.
+	 */
+	@ApiStatus.Internal
+	void createInParent(Curriculum curriculum);
 
 }
