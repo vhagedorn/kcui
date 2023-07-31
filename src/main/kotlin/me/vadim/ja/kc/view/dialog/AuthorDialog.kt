@@ -9,9 +9,9 @@ import io.github.mslxl.ktswing.layout.borderLayout
 import io.github.mslxl.ktswing.layout.flowLayout
 import io.github.mslxl.ktswing.onAction
 import me.vadim.ja.kc.JModalDialog
-import me.vadim.ja.kc.KCTheme
+import me.vadim.ja.kc.ui.KCTheme
 import me.vadim.ja.kc.KanjiCardUIKt
-import me.vadim.ja.kc.persist.wrapper.Library
+import me.vadim.ja.kc.model.wrapper.Library
 import me.vadim.ja.kc.util.Util
 import me.vadim.ja.swing.HintTextField
 import java.awt.BorderLayout

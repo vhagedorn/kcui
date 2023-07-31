@@ -1,8 +1,8 @@
 package me.vadim.ja.kc.render.impl.factory;
 
 import me.vadim.ja.kc.KanjiCardUI;
-import me.vadim.ja.kc.db.impl.blob.BlobCache;
-import me.vadim.ja.kc.persist.wrapper.Card;
+import me.vadim.ja.kc.db.ImageCache;
+import me.vadim.ja.kc.model.wrapper.Card;
 import me.vadim.ja.kc.render.impl.PDFConversionService;
 import me.vadim.ja.kc.render.impl.PreviewConversionService;
 import me.vadim.ja.kc.render.impl.PrintOptions;
@@ -29,7 +29,7 @@ public class FlashcardPipeline {
 	private final PreviewConversionService png;
 
 	public FlashcardPipeline(DiagramCreator diag, PDFConversionService pdf, PreviewConversionService png) {
-		this.sor = new StrokeOrderRegistry(diag, new BlobCache());
+		this.sor = new StrokeOrderRegistry(diag, new ImageCache());
 		this.pdf = pdf;
 		this.png = png;
 	}

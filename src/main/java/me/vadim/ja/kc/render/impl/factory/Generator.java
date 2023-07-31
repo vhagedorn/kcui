@@ -1,9 +1,8 @@
 package me.vadim.ja.kc.render.impl.factory;
 
-import me.vadim.ja.kc.ResourceAccess;
-import me.vadim.ja.kc.persist.LinguisticElement;
-import me.vadim.ja.kc.persist.SpokenElement;
-import me.vadim.ja.kc.persist.wrapper.Card;
+import me.vadim.ja.kc.model.LinguisticElement;
+import me.vadim.ja.kc.model.SpokenElement;
+import me.vadim.ja.kc.model.wrapper.Card;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,7 +12,7 @@ import org.jsoup.nodes.Element;
 /**
  * @author vadim
  */
-public class Generator implements ResourceAccess {
+public class Generator {
 
 	@SuppressWarnings("StaticNonFinalField")
 	public static String

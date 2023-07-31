@@ -1,13 +1,13 @@
 package me.vadim.ja.kc.render.impl.img;
 
 import me.vadim.ja.kc.KanjiCardUI;
-import me.vadim.ja.kc.db.impl.blob.BlobCache;
+import me.vadim.ja.kc.db.ImageCache;
+import me.vadim.ja.kc.util.Util;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 /**
  * @author vadim
@@ -19,9 +19,11 @@ public class StrokeOrderRegistry {
 	private final DiagramCreator diag;
 	private final ExecutorService worker = KanjiCardUI.threadPool("Stroke diagram renderer %d");
 
-	private final BlobCache db;
+	private final Map<String, CompletableFuture<String>> diagrams = new ConcurrentHashMap<>();
 
-	public StrokeOrderRegistry(DiagramCreator diag, BlobCache db) {
+	private final ImageCache db;
+
+	public StrokeOrderRegistry(DiagramCreator diag, ImageCache db) {
 		this.diag = diag;
 		this.db   = db;
 	}
@@ -30,26 +32,26 @@ public class StrokeOrderRegistry {
 		DiagramCreator diag = options == DEFAULT_OPTS ? this.diag : this.diag.withOptions(options);
 		int            opts = diag.toBitmask();
 
-		db.connect();
-		List<String> imgs = target.codePoints().filter(Character::isIdeographic).mapToObj(c -> {
-			String character = Character.toString(c);
-
-			String base64 = db.queryDiagram(character, opts);
-
-			if (base64 == null) {
-				base64 = diag.strokeOrder(character);
-				db.insertDiagram(character, opts, base64);
-			}
-
-			return base64;
-		}).collect(Collectors.toList());
-		db.disconnect();
-
-		if (diag.isRTL()) {
-			//reverse images for RTL consistency
-			Collections.reverse(imgs);
+		diag.asyncWorker = worker;
+		// filter kanji
+		target = target.codePoints().filter(Character::isIdeographic).mapToObj(Character::toString).collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
+		String[] imgs = db.queryMultiple(target, opts);
+		for (int i = 0; i < imgs.length; i++) {
+			String img = imgs[i];
+			if (img == null)
+				img = diagrams.computeIfAbsent(Character.toString(target.codePointAt(i)), ch ->
+						CompletableFuture.supplyAsync(() -> {
+							String d = diag.strokeOrder(ch);
+							db.insertOne(ch, opts, d);
+							return d;
+						}, worker)).join(); // only create 1 task per character
+			imgs[i] = img;
 		}
-		return imgs.toArray(String[]::new);
+
+		if (diag.isRTL())
+			//reverse images for RTL consistency
+			Util.reverse(imgs);
+		return imgs;
 	}
 
 	public CompletableFuture<String[]> submitQuery(String target, int options) {

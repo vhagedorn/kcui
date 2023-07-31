@@ -3,6 +3,8 @@ package me.vadim.ja.kc.render.impl.img;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -77,6 +79,10 @@ public class DiagramCreator {
 		return new DiagramCreator(exec, dpi, dfk, wrap, orient);
 	}
 
+	public static int createBitmask(int dpi, boolean drawFullKanji, int wrapAt, String orientation) {
+		return new DiagramCreator(null, dpi, drawFullKanji, wrapAt, orientation).toBitmask();
+	}
+
 	public boolean isRTL() {
 		return orientation.equals(Y);
 	}
@@ -109,6 +115,15 @@ public class DiagramCreator {
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public ExecutorService asyncWorker;
+
+	public CompletableFuture<String> strokeOrderAsync(String character) {
+		if (asyncWorker != null)
+			return CompletableFuture.supplyAsync(() -> strokeOrder(character), asyncWorker);
+		else
+			return CompletableFuture.supplyAsync(() -> strokeOrder(character));
 	}
 
 }

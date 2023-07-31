@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'me.vadim'
-version '1.0.1'
+version '1.0.2'
 
 def name = project.name + '.jar'
 def main = group + '.ja.Main'
@@ -37,13 +37,15 @@ dependencies {
     implementation 'org.apache.pdfbox:pdfbox:2.0.27'
     implementation 'io.github.fanyong920:jvppeteer:1.1.5'
 
-    implementation 'com.google.code.gson:gson:2.9.0'
-    implementation 'org.xerial:sqlite-jdbc:3.41.0.0'
+    implementation 'com.j256.ormlite:ormlite-core:6.1'
+    implementation 'com.j256.ormlite:ormlite-jdbc:6.1'
+    implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
 
     implementation 'org.glassfish.jaxb:jaxb-core:4.0.3'
     implementation 'org.glassfish.jaxb:jaxb-xjc:4.0.3'
     implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.3'
 
+    implementation 'com.google.code.gson:gson:2.9.0'
     implementation 'com.google.guava:guava:31.1-jre'
     implementation 'org.slf4j:slf4j-nop:2.0.6' // get rid of bullshit warning messages
 }

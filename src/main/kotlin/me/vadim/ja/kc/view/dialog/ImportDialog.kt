@@ -7,19 +7,13 @@ import io.github.mslxl.ktswing.layout.flowLayout
 import io.github.mslxl.ktswing.onAction
 import me.vadim.ja.kc.JModalDialog
 import me.vadim.ja.kc.KanjiCardUIKt
-import me.vadim.ja.kc.persist.io.JAXBStorage
-import me.vadim.ja.kc.persist.wrapper.Card
-import me.vadim.ja.kc.persist.wrapper.Curriculum
-import me.vadim.ja.kc.persist.wrapper.Group
-import me.vadim.ja.kc.render.impl.factory.PDFUtil
+import me.vadim.ja.kc.model.xml.JAXBStorage
+import me.vadim.ja.kc.model.wrapper.Card
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.JPanel
-import javax.swing.JProgressBar
-import javax.swing.JTable
-import javax.swing.table.DefaultTableModel
 
 
 /**

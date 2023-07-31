@@ -1,11 +1,9 @@
 package me.vadim.ja.kc.view
 
-import me.vadim.ja.kc.KCIcon
-import me.vadim.ja.kc.KCTheme
+import me.vadim.ja.kc.ui.KCIcon
+import me.vadim.ja.kc.ui.KCTheme
 import me.vadim.ja.kc.KanjiCardUIKt
-import me.vadim.ja.kc.persist.io.JAXBStorage
-import me.vadim.ja.kc.persist.wrapper.Card
-import me.vadim.ja.kc.persist.wrapper.Curriculum
+import me.vadim.ja.kc.model.wrapper.Curriculum
 import me.vadim.ja.kc.view.dialog.About
 import me.vadim.ja.kc.view.dialog.CurriculumExportDialog
 import me.vadim.ja.kc.view.dialog.ImportDialog

@@ -9,15 +9,17 @@ import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.*
 import io.github.mslxl.ktswing.onAction
 import me.vadim.ja.kc.*
-import me.vadim.ja.kc.persist.EnumeratedItem
-import me.vadim.ja.kc.persist.LinguisticElement
-import me.vadim.ja.kc.persist.PartOfSpeech
-import me.vadim.ja.kc.persist.PronounciationType
-import me.vadim.ja.kc.persist.SpokenElement
-import me.vadim.ja.kc.persist.impl.Location
-import me.vadim.ja.kc.persist.wrapper.Card
-import me.vadim.ja.kc.persist.wrapper.Curriculum
-import me.vadim.ja.kc.persist.wrapper.Group
+import me.vadim.ja.kc.model.EnumeratedItem
+import me.vadim.ja.kc.model.LinguisticElement
+import me.vadim.ja.kc.model.PartOfSpeech
+import me.vadim.ja.kc.model.PronounciationType
+import me.vadim.ja.kc.model.SpokenElement
+import me.vadim.ja.kc.model.xml.Location
+import me.vadim.ja.kc.model.wrapper.Card
+import me.vadim.ja.kc.model.wrapper.Curriculum
+import me.vadim.ja.kc.model.wrapper.Group
+import me.vadim.ja.kc.ui.KCIcon
+import me.vadim.ja.kc.ui.KCTheme
 import me.vadim.ja.swing.SortedComboBoxModel
 import java.awt.*
 import java.awt.event.FocusAdapter
@@ -341,7 +343,6 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 
 	private fun post() {
 		println("Regenerating preview.")
-//		kt.preview.populate(*kt.mgr.preview(gather(), kt.preview.gather()))
 		kt.postPreview(gather())
 	}
 
@@ -352,9 +353,6 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 	private lateinit var last: CardLocation
 
 	fun populate(k: Card) {
-		modified = false
-		showSaveIndicator = false
-
 		card = k
 		last = CardLocation(k.hash(), k.location)
 		kanjiArea.text = k.describeJapanese()
@@ -394,6 +392,11 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 		})
 			pronounciations.createLine(pron)
 
+		kt.preview.populate(k.renderOpts)
+
+		modified = false
+		showSaveIndicator = false
+
 		frame.revalidate()
 		frame.repaint()
 	}
@@ -404,6 +407,11 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 		val k = card
 		k.setJapanese(kanjiArea.text)
 		k.location = Location(curriculumSelector.selectedItem as Curriculum, groupSelector.selectedItem as Group)
+
+		var opts: Int? = kt.preview.gather()
+		if(opts == k.location.curriculum.defaultRenderOpts)
+			opts = null
+		k.setRenderOptsOverride(opts)
 
 		//definitions
 		val def = mutableListOf<String>()

@@ -3,7 +3,6 @@ package me.vadim.ja.kc.render;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import me.vadim.ja.kc.ResourceAccess;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +21,7 @@ import java.util.regex.Pattern;
 /**
  * @author vadim
  */
-public class InMemoryFileServer implements ResourceAccess {
+public class InMemoryFileServer {
 
 	private final HttpServer server;
 	private final int port;

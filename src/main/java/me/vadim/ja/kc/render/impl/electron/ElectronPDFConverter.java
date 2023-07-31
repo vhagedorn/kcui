@@ -1,6 +1,5 @@
 package me.vadim.ja.kc.render.impl.electron;
 
-import me.vadim.ja.kc.ResourceAccess;
 import me.vadim.ja.kc.render.DocConverters;
 import me.vadim.ja.kc.render.impl.PDFConversionService;
 import me.vadim.ja.kc.render.impl.PrintOptions;
@@ -15,7 +14,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * @author vadim
  */
-public class ElectronPDFConverter implements PDFConversionService, ResourceAccess {
+public class ElectronPDFConverter implements PDFConversionService {
 
 	private final ElectronPDFProxy proxy;
 	private final StaticFileServer server;

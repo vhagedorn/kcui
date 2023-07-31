@@ -9,9 +9,9 @@ import io.github.mslxl.ktswing.component.scrollPane
 import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.GridBagLayoutRootScope
 import io.github.mslxl.ktswing.layout.flowLayout
-import io.github.mslxl.ktswing.layout.gridBagLayout
 import io.github.mslxl.ktswing.onAction
-import org.intellij.lang.annotations.JdkConstants.BoxLayoutAxis
+import me.vadim.ja.kc.ui.KCIcon
+import me.vadim.ja.kc.ui.KCTheme
 import java.awt.*
 import java.lang.IllegalArgumentException
 import javax.swing.BoxLayout

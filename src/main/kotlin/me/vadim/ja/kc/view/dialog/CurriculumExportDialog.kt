@@ -9,13 +9,18 @@ import io.github.mslxl.ktswing.layout.borderLayout
 import io.github.mslxl.ktswing.onAction
 import me.vadim.ja.kc.JModalDialog
 import me.vadim.ja.kc.KanjiCardUIKt
-import me.vadim.ja.kc.persist.wrapper.Curriculum
-import me.vadim.ja.kc.persist.wrapper.Group
+import me.vadim.ja.kc.model.wrapper.Card
+import me.vadim.ja.kc.model.wrapper.Curriculum
+import me.vadim.ja.kc.model.wrapper.Group
 import me.vadim.ja.kc.render.impl.factory.PDFUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.io.File
+import java.util.function.Function
+import java.util.stream.Collectors
+import java.util.stream.Stream
 import javax.swing.JFileChooser
+import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import javax.swing.JTable
@@ -63,19 +68,19 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 						button("Export") {
 							onAction {
 								val groups = mutableListOf<Group>()
-
 								for (i in 0 until table.rowCount)
 									if (table.getValueAt(i, 1) == true)
 										groups.add(table.getValueAt(i, 0) as Group)
-
+								val cards = groups.flatMap { kt.ctx.activeLibrary.getCards(it) }.toList()
 
 								val pb = object : JModalDialog(this@CurriculumExportDialog) {
 									override val minSize = Dimension(250, 20)
 
+									val progress = JProgressBar(0, 4) // see comment on export method
+
 									init {
 										layout = BorderLayout()
-										val progress = JProgressBar()
-										progress.isIndeterminate = true
+										progress.isIndeterminate = false
 										progress.string = "Exporting..."
 										title = "Exporting..."
 										isUndecorated = true
@@ -83,19 +88,27 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 									}
 								}
 								pb.display()
-								kt.ctx.export(groups, kt.preview.gather()).thenAccept {
+								kt.ctx.export(cards, kt.preview.gather()) {
+									synchronized(pb) {
+										pb.progress.value++
+									}
+								}.thenAccept {
 									pb.dispose()
 
-									val fc = JFileChooser(".")
-									fc.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-									val resp = fc.showSaveDialog(this@CurriculumExportDialog)
+									if(it != null) {
+										val fc = JFileChooser(".")
+										fc.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+										val resp = fc.showSaveDialog(this@CurriculumExportDialog)
 
-									val names = arrayOf("front", "back")
-									if (resp == JFileChooser.APPROVE_OPTION)
-										for (i in it.indices)
-											it[i].save(File(fc.selectedFile, "$curriculum-${names[i]}.pdf"))
+										val names = arrayOf("front", "back")
+										if (resp == JFileChooser.APPROVE_OPTION)
+											for (i in it.indices)
+												it[i].save(File(fc.selectedFile, "$curriculum-${names[i]}.pdf"))
 
-									PDFUtil.closeSafely(*it)
+										PDFUtil.closeSafely(*it)
+									} else {
+										JOptionPane.showMessageDialog(this@CurriculumExportDialog, "There was an error while exporting!", "Export Error", JOptionPane.ERROR_MESSAGE)
+									}
 
 									dispose()
 								}

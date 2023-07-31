@@ -1,6 +1,11 @@
 package me.vadim.ja.kc.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -55,5 +60,85 @@ public final class Util {
 		traverse(root, nodes::add);
 		return nodes;
 	}
+
+	public static @NotNull InputStream loadResource(String name) throws ResourceNotFoundException {
+		if (name == null)
+			throw new ResourceNotFoundException(null);
+		URL resource = Util.class.getClassLoader().getResource(name);
+		try {
+			if (resource != null)
+				return resource.openStream();
+		} catch (IOException e) {
+			throw new ResourceNotFoundException(name, e);
+		}
+		throw new ResourceNotFoundException(name);
+	}
+
+	//@formatter:off
+	public static <T> void reverse(T[] array) {
+		for (int i = 0; i < array.length / 2; i++) {
+			T temp = array[i];
+			array[i] = array[array.length - i - 1];
+			array[array.length - i - 1] = temp;
+		}
+	}
+	public static void reverse(byte[] array) {
+		for (int i = 0; i < array.length / 2; i++) {
+			byte temp = array[i];
+			array[i] = array[array.length - i - 1];
+			array[array.length - i - 1] = temp;
+		}
+	}
+	public static void reverse(short[] array) {
+		for (int i = 0; i < array.length / 2; i++) {
+			short temp = array[i];
+			array[i] = array[array.length - i - 1];
+			array[array.length - i - 1] = temp;
+		}
+	}
+	public static void reverse(int[] array) {
+		for (int i = 0; i < array.length / 2; i++) {
+			int temp = array[i];
+			array[i] = array[array.length - i - 1];
+			array[array.length - i - 1] = temp;
+		}
+	}
+	public static void reverse(long[] array) {
+		for (int i = 0; i < array.length / 2; i++) {
+			long temp = array[i];
+			array[i] = array[array.length - i - 1];
+			array[array.length - i - 1] = temp;
+		}
+	}
+	public static void reverse(float[] array) {
+		for (int i = 0; i < array.length / 2; i++) {
+			float temp = array[i];
+			array[i] = array[array.length - i - 1];
+			array[array.length - i - 1] = temp;
+		}
+	}
+	public static void reverse(double[] array) {
+		for (int i = 0; i < array.length / 2; i++) {
+			double temp = array[i];
+			array[i] = array[array.length - i - 1];
+			array[array.length - i - 1] = temp;
+		}
+	}
+	public static void reverse(boolean[] array) {
+		for (int i = 0; i < array.length / 2; i++) {
+			boolean temp = array[i];
+			array[i] = array[array.length - i - 1];
+			array[array.length - i - 1] = temp;
+		}
+	}
+	public static void reverse(char[] array) {
+		for (int i = 0; i < array.length / 2; i++) {
+			char temp = array[i];
+			array[i] = array[array.length - i - 1];
+			array[array.length - i - 1] = temp;
+		}
+	}
+	//@formatter:on
+
 
 }

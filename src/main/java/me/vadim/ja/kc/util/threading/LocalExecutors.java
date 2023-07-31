@@ -11,16 +11,16 @@ import java.util.concurrent.TimeUnit;
 public class LocalExecutors {
 
 	public static ExecutorService newExtendedThreadPool() {
-		return new SafeExecutor(0, Integer.MAX_VALUE,
-								60L, TimeUnit.SECONDS,
-								new SynchronousQueue<Runnable>());
+		return new ExtendedExecutor(0, Integer.MAX_VALUE,
+									60L, TimeUnit.SECONDS,
+									new SynchronousQueue<Runnable>());
 	}
 
 	public static ExecutorService newExtendedThreadPool(ThreadFactory threadFactory) {
-		return new SafeExecutor(0, Integer.MAX_VALUE,
-								60L, TimeUnit.SECONDS,
-								new SynchronousQueue<Runnable>(),
-								threadFactory);
+		return new ExtendedExecutor(0, Integer.MAX_VALUE,
+									60L, TimeUnit.SECONDS,
+									new SynchronousQueue<Runnable>(),
+									threadFactory);
 	}
 
 }

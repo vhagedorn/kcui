@@ -9,16 +9,14 @@ import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.borderLayout
 import io.github.mslxl.ktswing.layout.flowLayout
 import me.vadim.ja.kc.KanjiCardUIKt
-import me.vadim.ja.kc.persist.impl.KCFactory
-import me.vadim.ja.kc.persist.impl.Location
-import me.vadim.ja.kc.persist.wrapper.Card
-import me.vadim.ja.kc.persist.wrapper.Curriculum
-import me.vadim.ja.kc.persist.wrapper.Group
+import me.vadim.ja.kc.model.xml.KCFactory
+import me.vadim.ja.kc.model.wrapper.Card
+import me.vadim.ja.kc.model.wrapper.Curriculum
+import me.vadim.ja.kc.model.wrapper.Group
 import me.vadim.ja.kc.util.Util
 import me.vadim.ja.kc.view.HistoryCtx
 import me.vadim.ja.swing.NaturalOrderComparator
 import me.vadim.ja.swing.SimpleTreeNode
-import org.checkerframework.checker.units.qual.g
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Toolkit
@@ -105,12 +103,24 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 	}
 
 	private fun newCard(group: Group) {
-		kt.showEditor(kt.ctx.activeLibrary.createCard(Location(group.curriculum, group)))
+		kt.showEditor(kt.ctx.activeLibrary.createCard(group.toLocation()))
 		populate(group.curriculum)
 	}
 
+	private fun createAction(comp: Any) {
+		when (comp) {
+			is Curriculum -> newGroup(comp)
+			is Group      -> newCard(comp)
+			else          -> System.err.println("w: Illegal ctx menu access (`New` for class ${comp.javaClass.canonicalName})")
+		}
+		kt.ctx.saveLibrary(false)
+	}
+
 	private fun selectAction(comp: Any, edit: Boolean, toggle: Boolean = false) {
-		if (edit) println("> Edit $comp")
+		if (edit) {
+			println("> Edit $comp")
+			kt.ctx.saveLibrary(false)
+		}
 		if (comp !is Card) {
 			val path = tree.selectionPath
 			if (toggle)
@@ -118,7 +128,6 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 					tree.expandPath(path)
 				else
 					tree.collapsePath(path)
-
 			kt.preview.populate()
 		}
 		when (comp) {
@@ -150,7 +159,6 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 					populate(comp)
 				}
 		}
-		kt.ctx.saveLibrary()
 	}
 
 	private fun deleteAction(comp: Any) {
@@ -170,6 +178,7 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 				is Curriculum -> kt.ctx.delete(comp)
 			}
 		repopulate()
+		kt.ctx.saveLibrary(false)
 	}
 
 	private val ctx: Ctx
@@ -211,14 +220,10 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 	private val selectedObject: Any?
 		get() = (tree.selectionPath?.lastPathComponent as DefaultMutableTreeNode?)?.userObject
 
+	private var initd = false // hacky hack hack
 	init {
 		ctx = Ctx(this, new = { // right click -> context menu -> action
-			val item = selectedObject ?: return@Ctx
-			when (item) {
-				is Curriculum -> newGroup(item)
-				is Group      -> newCard(item)
-				else          -> System.err.println("w: Illegal ctx menu access (`New` for class ${item.javaClass.canonicalName})")
-			}
+			createAction(selectedObject ?: return@Ctx)
 		}, edit = {
 			selectAction(selectedObject ?: return@Ctx, true)
 		}, delete = {
@@ -228,8 +233,9 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 		tree.addMouseListener(object : MouseAdapter() {
 			override fun mouseClicked(e: MouseEvent) { // left click -> action
 				val node = tree.lastSelectedPathComponent as DefaultMutableTreeNode? ?: return
-				if (SwingUtilities.isLeftMouseButton(e))
-					selectAction(node.userObject, node.userObject is Card && e.clickCount == 2)
+				val uo: Any? = node.userObject
+				if (uo != null && SwingUtilities.isLeftMouseButton(e))
+					selectAction(uo, uo is Card && e.clickCount == 2)
 			}
 
 			override fun mousePressed(e: MouseEvent) { // right click -> context menu
@@ -278,12 +284,13 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 						panel {
 							flowLayout(FlowLayout.LEADING) {
 								label("Curriculum")
-								curriculumSelector = comboBox(kt.ctx.activeLibrary.curriculums.toMutableList().apply { add(PLACEHOLDER_CURRICULUM) }) {
+								curriculumSelector = comboBox(kt.ctx.activeLibrary.curriculums.toMutableSet().apply { add(PLACEHOLDER_CURRICULUM) }.toMutableList()) {
 									attr {
 										selectedIndex = 0
-										if(selectedItem === PLACEHOLDER_CURRICULUM)
+										if (selectedItem === PLACEHOLDER_CURRICULUM)
 											selectedItem = null
 										addActionListener {
+											if(!initd) return@addActionListener // hacky hack hack
 											var selected = self.selectedItem as Curriculum? ?: return@addActionListener
 											if (selected === PLACEHOLDER_CURRICULUM) {
 												val name = JOptionPane.showInputDialog(
@@ -311,6 +318,7 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 		add(scroll, BorderLayout.CENTER)
 		repopulate()
 		requestFocusInWindow()
+		initd = true // hacky hack hack
 	}
 
 	fun repopulate() {
@@ -319,44 +327,40 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 
 	fun populate(curriculum: Curriculum?) {
 		var root = tree.model.root
-		if(root !is SimpleTreeNode) { // not initialized
+		if (root !is SimpleTreeNode || root.userObject != curriculum) { // clear & repopulate
 			root = SimpleTreeNode(curriculum, NaturalOrderComparator())
 			tree.model = DefaultTreeModel(root)
 		}
-		if(root.userObject != curriculum) // clear & repopulate
-			root.userObject = curriculum
 
-		if(curriculum != null) {
+		if (curriculum != null) {
 			curriculum.flatten()
-			kt.ctx.activeLibrary
 			val groups = curriculum.groups.toMutableList()
-			val toAdd = mutableListOf<Pair<DefaultMutableTreeNode, DefaultMutableTreeNode>>() // Pair<NewChild,AddTo>
 			for (node in Util.getChildren(root)) { // iterate over existing groups
 				val obj = node.userObject
-				if(obj is Card) // clear & readd
+				if (obj is Card) // clear & readd
 					node.removeFromParent()
 				if (obj is Group) {
-					groups.remove(obj) // group is not new
-					for (card in kt.ctx.activeLibrary.getCards(obj)) // readd cards (group node should preserve expansion state)
-						toAdd += SimpleTreeNode(card) to node
+					if (groups.remove(obj)) // group is not new
+						for (card in kt.ctx.activeLibrary.getCards(obj)) // readd cards (group node should preserve expansion state)
+							node.add(SimpleTreeNode(card))
+					else // group has been deleted
+						node.removeFromParent()
 				}
 			}
 			for (group in groups) { // add new groups
-				val node = SimpleTreeNode(group, NaturalOrderComparator()).also { root.add(it) }
+				val node = SimpleTreeNode(group, NaturalOrderComparator())
 				for (card in kt.ctx.activeLibrary.getCards(group))
-					toAdd += SimpleTreeNode(card) to node
-			}
-			toAdd.forEach {
-				it.second.add(it.first)
+					node.add(SimpleTreeNode(card))
+				root.add(node)
 			}
 		}
 
 		curriculumSelector.apply {
 			removeAllItems()
-			kt.ctx.activeLibrary.curriculums.toMutableList().apply { add(PLACEHOLDER_CURRICULUM) }.forEach {
+			kt.ctx.activeLibrary.curriculums.toMutableSet().apply { add(PLACEHOLDER_CURRICULUM) }.forEach {
 				addItem(it)
 			}
-			if(curriculum == null) {
+			if (curriculum == null) {
 				selectedIndex = 0
 				if (selectedItem === PLACEHOLDER_CURRICULUM)
 					selectedItem = null
@@ -364,5 +368,8 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 				selectedItem = curriculum
 			}
 		}
+
+		tree.expandPath(TreePath(root.path))
+		revalidate()
 	}
 }

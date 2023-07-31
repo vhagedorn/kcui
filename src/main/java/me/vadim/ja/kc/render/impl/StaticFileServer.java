@@ -2,6 +2,7 @@ package me.vadim.ja.kc.render.impl;
 
 import me.vadim.ja.kc.render.InMemoryFileServer;
 import me.vadim.ja.kc.render.ServerResource;
+import me.vadim.ja.kc.util.Util;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ public class StaticFileServer extends InMemoryFileServer {
 		super(port, showIndex);
 		this.uploadPath = uploadPath;
 		for (ServerResourceIdentifier sri : identifiers) {
-			try (InputStream is = loadResource(sri.resourceURL)) {
+			try (InputStream is = Util.loadResource(sri.resourceURL)) {
 				putResource(sri.path, new ServerResource(sri.name, is.readAllBytes(), sri.mimeType, sri.charset));
 			} catch (IOException e) {
 				throw new RuntimeException(e);

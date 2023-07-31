@@ -5,11 +5,11 @@ import io.github.mslxl.ktswing.component.*
 import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.*
 import io.github.mslxl.ktswing.onAction
-import me.vadim.ja.kc.KCIcon
+import me.vadim.ja.kc.ui.KCIcon
 import me.vadim.ja.kc.KanjiCardUIKt
-import me.vadim.ja.kc.Texture
-import me.vadim.ja.kc.impl.Icons
-import me.vadim.ja.kc.persist.wrapper.Card
+import me.vadim.ja.kc.ui.Texture
+import me.vadim.ja.kc.ui.impl.Icons
+import me.vadim.ja.kc.model.wrapper.Card
 import me.vadim.ja.kc.render.impl.img.DiagramCreator
 import me.vadim.ja.kc.row
 import me.vadim.ja.swing.ImagePanel
@@ -25,7 +25,7 @@ import javax.swing.*
 class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 
 	/**
-	 * When `forcedWidth` AND `forcedHeight` are set, it both are applied in that order (resulting image quality is undefined).
+	 * When `forcedWidth` AND `forcedHeight` are set, both are applied in that order (resulting image quality is undefined).
 	 */
 	@Suppress("JoinDeclarationAndAssignment")
 	private class ImageCarousel(private val forcedWidth: Int = -1, private val forcedHeight: Int = -1) : JPanel(GridBagLayout()) {
@@ -148,6 +148,12 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 	}
 
 	var card: Card? = null
+		set(value) {
+			if (value != null)
+				populate(value.renderOpts)
+			field = value
+		}
+
 	var editable: Boolean = false
 		set(value) {
 			fun recurse(component: Container) {
@@ -198,7 +204,7 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 								anchor = GridBagConstraints.SOUTH
 							}
 						}
-						panel {
+						strokePanel = panel {
 							gridBagLayout {
 								cell {
 									attr {
@@ -231,11 +237,15 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 
 											button("Apply curriculum defaults") {
 												attr {
-													isEnabled = false
+													isEnabled = true
 												}
 												onAction {
-													kt.editor.modified = true
-													TODO("apply defaults")
+													val k = card
+													if(k != null) {
+														k.setRenderOptsOverride(null)
+														populate(k.location.curriculum.defaultRenderOpts)
+														kt.editor.modified = true
+													}
 												}
 											}
 										}
@@ -257,7 +267,7 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 										}
 									}
 
-									strokePanel = panel {
+									panel {
 										gridBagLayout {
 											row(0) {
 												panel {
@@ -345,10 +355,20 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 		editable = false
 	}
 
-	fun gather(): Int = DiagramCreator(null, 200, drawFull.isSelected, wrapAfter.value as Int, orientation.selection.actionCommand).toBitmask()
+	fun gather(): Int = DiagramCreator.createBitmask(200, drawFull.isSelected, wrapAfter.value as Int, orientation.selection.actionCommand)
+
+	fun populate(renderOpts: Int) {
+		val diag = DiagramCreator.fromBitmask(renderOpts, null)
+
+		drawFull.isSelected = diag.drawFullKanji
+		wrapAfter.value = diag.wrapAt.toInt()
+		orientation.selection.actionCommand = diag.orientation
+		repaint()
+	}
 
 	fun populate(vararg imgs: BufferedImage) {
 		if (imgs.isEmpty()) {
+			card = null
 			images.setImage(0, KCIcon.PREVIEW_EMPTY.primary.unedited())
 			images.delImage(1)
 		} else {

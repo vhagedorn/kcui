@@ -8,9 +8,9 @@ import io.github.mslxl.ktswing.component.split2Pane
 import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.borderLayoutCenter
 import io.github.mslxl.ktswing.layout.cardLayout
-import me.vadim.ja.kc.persist.LibraryContext
-import me.vadim.ja.kc.persist.impl.LibCtx
-import me.vadim.ja.kc.persist.wrapper.Card
+import me.vadim.ja.kc.model.LibraryContext
+import me.vadim.ja.kc.model.wrapper.Card
+import me.vadim.ja.kc.model.xml.KCFactory
 import me.vadim.ja.kc.view.*
 import me.vadim.ja.kc.view.dialog.About
 import me.vadim.ja.kc.view.dialog.AuthorDialog
@@ -39,7 +39,7 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 		private const val EXPLORER = "Explorer"
 	}
 
-	val ctx: LibraryContext = LibCtx()
+	val ctx: LibraryContext = KCFactory.loadDefault()
 	var license: String by nonce()
 	var version: String by nonce()
 	var author: AuthorDialog by nonce()
@@ -51,6 +51,8 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 	private var cardPanel: JPanel by nonce()
 
 	fun populate(): Component {
+		ctx.activeLibrary.author
+
 		author = AuthorDialog(ctx.activeLibrary, this)
 		toolbar = Toolbar(this, License(frame, license), About(frame, version))
 		frame.jMenuBar = toolbar
@@ -134,6 +136,7 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 	}
 
 	fun shutdown() {
+		ctx.saveLibrary(true)
 		author.dispose()
 		toolbar.dispose()
 		ctx.shutdown()

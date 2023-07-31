@@ -2,9 +2,11 @@ package me.vadim.ja.kc;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import me.vadim.ja.Application;
-import me.vadim.ja.kc.persist.io.JAXBStorage;
+import me.vadim.ja.kc.model.xml.JAXBStorage;
 import me.vadim.ja.kc.render.DocConverters;
 import me.vadim.ja.kc.render.impl.factory.Generator;
+import me.vadim.ja.kc.ui.KCIcon;
+import me.vadim.ja.kc.util.Util;
 import me.vadim.ja.kc.util.threading.LocalExecutors;
 
 import javax.swing.*;
@@ -24,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * @author vadim
  */
-public class KanjiCardUI extends Application implements ResourceAccess {
+public class KanjiCardUI extends Application {
 
 	public static final int PREFERRED_SIZE_X = 820;
 	public static final int PREFERRED_SIZE_Y = 575;
@@ -68,7 +70,7 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 		}
 
 		void load() throws IOException {
-			try (InputStream is = loadResource(rname)) {
+			try (InputStream is = Util.loadResource(rname)) {
 				buf = is.readAllBytes();
 			}
 		}
@@ -136,7 +138,7 @@ public class KanjiCardUI extends Application implements ResourceAccess {
 		legal();
 		banner();
 		System.out.println("KanjiCard UI" + " v" + version);
-		System.out.println("\tby Vadim Hagedorn @ March 2023");
+		System.out.println("\tby Vadim Hagedorn");
 		System.out.println();
 
 		setup();

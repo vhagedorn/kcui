@@ -10,6 +10,8 @@ import io.github.mslxl.ktswing.layout.GridBagLayoutCellScope
 import io.github.mslxl.ktswing.layout.GridBagLayoutRootScope
 import io.github.mslxl.ktswing.layout.flowLayout
 import io.github.mslxl.ktswing.onAction
+import me.vadim.ja.kc.ui.KCIcon
+import me.vadim.ja.kc.ui.KCTheme
 import java.awt.FlowLayout
 import java.awt.GridBagConstraints
 import java.lang.IllegalArgumentException
