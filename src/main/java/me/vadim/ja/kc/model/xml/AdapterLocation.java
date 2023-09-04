@@ -9,8 +9,8 @@ class AdapterLocation extends XmlAdapter<String, Location> {
 
 	@Override
 	public Location unmarshal(String v) throws Exception {
-		if (Location.EMPTY.equals(v))
-			return Location.NONE;
+		if (Location.empty.equals(v))
+			return Location.EMPTY;
 
 		if (v == null || v.isBlank())
 			throw new IllegalArgumentException(v);
@@ -28,7 +28,7 @@ class AdapterLocation extends XmlAdapter<String, Location> {
 
 	@Override
 	public String marshal(Location v) throws Exception {
-		return v == null ? Location.EMPTY : v.toString();
+		return v == null ? Location.empty : v.toString();
 	}
 
 }

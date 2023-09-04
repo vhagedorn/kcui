@@ -2,131 +2,143 @@
 <!--suppress HtmlUnknownTarget, HtmlWrongAttributeValue -->
 <html lang="en-US">
 <head>
-	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-	<meta content="utf-8" http-equiv="encoding">
-	<link rel="stylesheet" href="/css/printing.css">
-	<style type="text/css">
-	li{
-		margin-left: -2em;
-	}
-	ul {
-		margin-left: 0;
-	}
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <link rel="stylesheet" href="/css/printing.css">
+    <style type="text/css">
+        li {
+            margin-left: -2em;
+        }
 
-	/** back side **/
-	.container {
-		flex-wrap: wrap;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        width: 100vw;
-        height: 100vh;
-	}
+        ul {
+            margin-left: 0;
+        }
 
-	/* diagram */
-	.margin {
-		position: relative;
-		top: -18px;
-		margin-bottom: -18px;
-	}
-	.imgbox {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100vw;
-		height: 100%;
-	}
-	.stroke-center {
-		height: 300px;
-		margin-left: -1px;
-	}
+        /** back side **/
+        .container {
+            flex-wrap: wrap;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* diagram */
+        .margin {
+            position: relative;
+            top: -18px;
+            margin-bottom: -18px;
+        }
+
+        .imgbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 100%;
+        }
+
+        .stroke-center {
+            height: 300px;
+            margin-left: -1px;
+        }
 
 
-	/* info */
-	.info {
-		gap: 1em;
-		position: relative;
-		display: flex;
-		justify-content: center;
-		align-items: flex-start;
-		align-content: center;
-	}
-	#left {
-		flex: 1;
-		text-align: left;
-	}
-	#right {
-		flex: 5;
-		text-align: left;
-	}
-	.box {
-		display: flex;
-		align-items: flex-start;
-		justify-content: flex-start;
-		flex-direction: row-reverse;
-		/* for vertical rtl wrapping (like you would write by hand) */
-		/*flex-direction: column;*/
-		/*direction: rtl;*/
-		font-size: 16px;
-		flex-wrap: wrap;
-	}
-	div.box {
-		width: 1in;
-		height: auto;
-		/* for vertical rtl wrapping (like you would write by hand) */
-		/*direction: ltr;*/
-	}
-	div.box > div {
-		flex: 1 0 33.33333%;
-		writing-mode: vertical-rl;
-	}
-	.pron {
-		font-family: Noto Sans JP,sans-serif;
-		font-size: inherit;
-	}
-	.psym {
-		font-family: Gadugi,serif;
-		font-size: inherit;
-	}
-	.pos {
-		font-size: 20px;
-		font-family: Calibri,serif;
-	}
-	.def {
-		font-size: 12px;
-		font-family: Calibri,serif;
-		inline-size: 35ch;
-	}
-	</style>
+        /* info */
+        .info {
+            gap: 1em;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            align-content: center;
+        }
+
+        #left {
+            flex: 1;
+            text-align: left;
+        }
+
+        #right {
+            flex: 5;
+            text-align: left;
+        }
+
+        .box {
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            flex-direction: row-reverse;
+            /* for vertical rtl wrapping (like you would write by hand) */
+            /*flex-direction: column;*/
+            /*direction: rtl;*/
+            font-size: 16px;
+            flex-wrap: wrap;
+        }
+
+        div.box {
+            width: 1in;
+            height: auto;
+            /* for vertical rtl wrapping (like you would write by hand) */
+            /*direction: ltr;*/
+        }
+
+        div.box > div {
+            flex: 1 0 33.33333%;
+            writing-mode: vertical-rl;
+        }
+
+        .pron {
+            font-family: Noto Sans JP, sans-serif;
+            font-size: inherit;
+        }
+
+        .psym {
+            font-family: Gadugi, serif;
+            font-size: inherit;
+        }
+
+        .pos {
+            font-size: 20px;
+            font-family: Calibri, serif;
+        }
+
+        .def {
+            font-size: 12px;
+            font-family: Calibri, serif;
+            inline-size: 35ch;
+        }
+    </style>
 </head>
 <body>
-	<div class="watermark">PREVIEW</div>
-	<div id="back" class="printable container">
-		<div class="margin">
-			<div class="imgbox" id="diagrams">
-				<img src="image_source" class="stroke-center" alt="Stroke Diagram">
-			</div>
-		</div>
-		<div class="info">
-			<div id="left">
-				<div id="pronounciation" class="box">
-					<div><span class="psym">⛛</span><span class="pron">pronounciations</span></div>
-					<div><span class="psym">⛛</span><span class="pron">go</span></div>
-					<div><span class="psym">⛛</span><span class="pron">here</span></div>
-				</div>
-			</div>
-			<div id="right">
-				<span id="type" class="pos wrap">part of speech</span>
-				<ul class="def wrap" id="definition">
-					<li>a very long definition; with; multiple; options</li>
-					<li>and lines; and this is more text; and what if</li>
-					<li>and more text; and i don't think i will</li>
-					<li>ever have more than 4 lines in a definition...</li>
-					<li>but just for fun let;s see how many we can do</li>
-					<li>AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH</li>
-				</ul>
-			</div>
-		</div>
-	</div>
+<div class="watermark">PREVIEW</div>
+<div id="back" class="printable container">
+    <div class="margin">
+        <div class="imgbox" id="diagrams">
+            <img src="image_source" class="stroke-center" alt="Stroke Diagram">
+        </div>
+    </div>
+    <div class="info">
+        <div id="left">
+            <div id="pronounciation" class="box">
+                <div><span class="psym">⛛</span><span class="pron">pronounciations</span></div>
+                <div><span class="psym">⛛</span><span class="pron">go</span></div>
+                <div><span class="psym">⛛</span><span class="pron">here</span></div>
+            </div>
+        </div>
+        <div id="right">
+            <span id="type" class="pos wrap">part of speech</span>
+            <ul class="def wrap" id="definition">
+                <li>a very long definition; with; multiple; options</li>
+                <li>and lines; and this is more text; and what if</li>
+                <li>and more text; and i don't think i will</li>
+                <li>ever have more than 4 lines in a definition...</li>
+                <li>but just for fun let;s see how many we can do</li>
+                <li>AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH</li>
+            </ul>
+        </div>
+    </div>
+</div>
 </body>
 </html>

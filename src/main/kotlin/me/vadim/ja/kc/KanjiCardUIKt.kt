@@ -1,7 +1,5 @@
 package me.vadim.ja.kc
 
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
 import io.github.mslxl.ktswing.attr
 import io.github.mslxl.ktswing.component.panel
 import io.github.mslxl.ktswing.component.split2Pane
@@ -15,16 +13,15 @@ import me.vadim.ja.kc.view.*
 import me.vadim.ja.kc.view.dialog.About
 import me.vadim.ja.kc.view.dialog.AuthorDialog
 import me.vadim.ja.kc.view.dialog.License
+import me.vadim.ja.kc.view.dialog.PrefDialog
 import me.vadim.ja.kc.view.pane.Editor
 import me.vadim.ja.kc.view.pane.Preview
 import me.vadim.ja.kc.view.pane.CurriculumExplorer
 import java.awt.CardLayout
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.image.BufferedImage
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 import kotlin.math.roundToInt
 
 /**
@@ -43,6 +40,7 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 	var license: String by nonce()
 	var version: String by nonce()
 	var author: AuthorDialog by nonce()
+	var pref: PrefDialog by nonce()
 	var toolbar: Toolbar by nonce()
 	var explorer: CurriculumExplorer by nonce()
 	var editor: Editor by nonce()
@@ -54,6 +52,7 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 		ctx.activeLibrary.author
 
 		author = AuthorDialog(ctx.activeLibrary, this)
+		pref = PrefDialog(this)
 		toolbar = Toolbar(this, License(frame, license), About(frame, version))
 		frame.jMenuBar = toolbar
 //		ui.add(KCUI.tabPane(ui), BorderLayout.CENTER)
@@ -96,20 +95,20 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 	}
 
 
-	private val previewCache: Cache<Card, Array<BufferedImage>> = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build()
 	fun postPreview(kanji: Card, useCached: Boolean = false) {
-		val cached = previewCache.getIfPresent(kanji)
+		val job = ctx.renderContext.cachedPreview(kanji).withOpts(kanji.renderOpts).zoomTo(preview.zoomFactor)
 
 		val future =
-			if (cached == null || !useCached)
-				ctx.generatePreview(kanji, preview.gather())
+			if (useCached)
+				job.result
 			else
-				CompletableFuture.completedFuture(cached)
+				job.recompute()
 
 		future.thenAccept {
-			previewCache.put(kanji, it)
-			preview.card = kanji
-			preview.populate(*it)
+			SwingUtilities.invokeLater {
+				preview.card = kanji
+				preview.populate(*it)
+			}
 		}
 	}
 
@@ -133,9 +132,13 @@ class KanjiCardUIKt(val frame: KanjiCardUI) {
 	fun showFirstLaunch() {
 		if (ctx.activeLibrary.author == null)
 			author.display()
+
+		if (ctx.preferences.kvg_dir == null)
+			pref.display()
 	}
 
 	fun shutdown() {
+		ctx.savePreferences()
 		ctx.saveLibrary(true)
 		author.dispose()
 		toolbar.dispose()

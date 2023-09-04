@@ -5,7 +5,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import me.vadim.ja.kc.model.wrapper.Curriculum;
 import me.vadim.ja.kc.model.wrapper.Group;
-import me.vadim.ja.kc.render.impl.img.DiagramCreator;
+import me.vadim.ja.kc.render.impl.svg.opt.DiagramOptions;
 import me.vadim.ja.kc.util.Util;
 
 import java.util.Collections;
@@ -21,7 +21,7 @@ class ImplCurriculum implements Curriculum {
 
 	private String name;
 	@XmlAttribute
-	private int renderOpts = DiagramCreator.createBitmask(200, true, 5, DiagramCreator.DOWN);
+	private int renderOpts = DiagramOptions.createBitmask(200, true, 5, DiagramOptions.DOWN);
 
 	ImplCurriculum() { }
 

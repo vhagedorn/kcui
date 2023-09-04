@@ -6,9 +6,11 @@ import java.util.Comparator;
 
 /**
  * <a href="https://stackoverflow.com/a/53245415/12344841">source</a>
+ *
  * @author Candamir
  */
 public class SimpleTreeNode extends DefaultMutableTreeNode {
+
 	private final Comparator<Object> comparator;
 
 	public SimpleTreeNode(Object userObject, Comparator<Object> comparator) {
@@ -27,4 +29,16 @@ public class SimpleTreeNode extends DefaultMutableTreeNode {
 			this.children.sort(this.comparator);
 		}
 	}
+
+	public void sort() { // vadim -- add recursive sort method
+		if (children != null) {
+			children.forEach(it -> {
+				if (it instanceof SimpleTreeNode)
+					((SimpleTreeNode) it).sort();
+			});
+			if (comparator != null)
+				children.sort(comparator);
+		}
+	}
+
 }

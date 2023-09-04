@@ -15,9 +15,9 @@ import java.util.Objects;
 public class Location {
 
 	public static final String DELIM = "#";
-	public static final String EMPTY = "<empty>";
+	public static final String empty = "<empty>";
 
-	public static final Location NONE = new Location(null, null);
+	public static final Location EMPTY = new Location(null, null);
 
 	private ImplCurriculum curriculum;
 	private ImplGroup group;
@@ -58,7 +58,7 @@ public class Location {
 		if (group != null)
 			builder.append(DELIM).append(group.getName());
 		String result = builder.toString();
-		return result.isEmpty() ? EMPTY : result;
+		return result.isEmpty() ? empty : result;
 	}
 
 	@Override

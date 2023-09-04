@@ -6,42 +6,39 @@ import me.vadim.ja.kc.model.xml.KCFactory;
  * @author vadim
  */
 public enum PronounciationType {
+
 	/**
-	 * Unspecified.
+	 * Unspecified or not applicable.
 	 */
-	UNKNOWN(-1),
+	UNKNOWN("n/a"),
+
 	/**
 	 * Borrowed Chinese pronounciation.
 	 */
-	ON_YOMI(0),
+	ON_YOMI("On'yomi"),
+
 	/**
-	 * Japanese native pronounciation.
+	 * Native Japanese pronounciation.
 	 */
-	KUN_YOMI(1),
+	KUN_YOMI("Kun'yomi"),
+
 	/**
 	 * Used in names (rare).
 	 */
-	NANORI(3);
+	NANORI("Nanori");
 
-	public final int id;
+	private final String name;
 
-	PronounciationType(int id) {
-		this.id = id;
+	PronounciationType(String name) {
+		this.name = name;
 	}
 
 	public SpokenElement toSpoken(String info) {
 		return KCFactory.ofSpoken(info, this);
 	}
 
-	public static PronounciationType fromID(int id) {
-		for (PronounciationType val : values())
-			if (val.id == id)
-				return val;
-		return null;
-	}
-
 	@Override
 	public String toString() {
-		return Character.toUpperCase(name().charAt(0)) + name().substring(1).toLowerCase().replace('_', '\'');
+		return name;
 	}
 }

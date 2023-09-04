@@ -15,7 +15,7 @@ public enum PartOfSpeech {
 	PRONOUN, // todo pronoun as noun variant?
 	VERB("godan", "ichidan", "irregular", "auxiliary", "transitive", "intransitive"),
 	ADVERB,
-	ADJECTIVE,
+	ADJECTIVE("na", "i", "no"),
 	PARTICLE,
 	PREPOSITION,
 	CONJUNCTION,

@@ -22,7 +22,7 @@ class ElementSpoken extends LinEl implements SpokenElement {
 
 	@Override
 	public String toString() {
-		return type.ordinal() + describe();
+		return describe();
 	}
 
 }

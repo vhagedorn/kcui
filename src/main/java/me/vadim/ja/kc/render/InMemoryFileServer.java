@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
@@ -25,7 +26,7 @@ public class InMemoryFileServer {
 
 	private final HttpServer server;
 	private final int port;
-	private final Map<String, Handler> handlers = new HashMap<>();
+	private final Map<String, Handler> handlers = new ConcurrentHashMap<>();
 
 	public InMemoryFileServer(int port, boolean showIndex) throws IOException {
 		this.port   = port;

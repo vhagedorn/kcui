@@ -10,11 +10,14 @@ import me.vadim.ja.kc.KanjiCardUIKt
 import me.vadim.ja.kc.ui.Texture
 import me.vadim.ja.kc.ui.impl.Icons
 import me.vadim.ja.kc.model.wrapper.Card
-import me.vadim.ja.kc.render.impl.img.DiagramCreator
+import me.vadim.ja.kc.render.impl.svg.opt.DiagramOptions
 import me.vadim.ja.kc.row
 import me.vadim.ja.swing.ImagePanel
 import java.awt.*
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.image.BufferedImage
+import java.lang.Exception
 import java.lang.IllegalArgumentException
 import java.lang.IndexOutOfBoundsException
 import javax.swing.*
@@ -24,11 +27,16 @@ import javax.swing.*
  */
 class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 
+	companion object {
+
+		const val INITIAL_HEIGHT = 350
+	}
+
 	/**
 	 * When `forcedWidth` AND `forcedHeight` are set, both are applied in that order (resulting image quality is undefined).
 	 */
 	@Suppress("JoinDeclarationAndAssignment")
-	private class ImageCarousel(private val forcedWidth: Int = -1, private val forcedHeight: Int = -1) : JPanel(GridBagLayout()) {
+	private class ImageCarousel(var forcedWidth: Int = -1, var forcedHeight: Int = -1) : JPanel(GridBagLayout()) {
 
 		private companion object {
 
@@ -42,10 +50,15 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 		private val back = JButton()
 		private val next = JButton()
 
-		private fun render() {
-			back.isEnabled = index > 0 && panel.componentCount > 1
-			next.isEnabled = index < panel.componentCount - 1
-			card.show(panel, index.toString())
+		fun render() {
+			synchronized(panel.treeLock) {
+				back.isEnabled = index > 0 && panel.componentCount > 1
+				next.isEnabled = index < panel.componentCount - 1
+				card.show(panel, index.toString())
+				for (component in panel.components)
+					if (component is ImagePanel)
+						component.reapplyImage()
+			}
 			panel.revalidate()
 			panel.repaint()
 		}
@@ -105,6 +118,8 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 			})
 		}
 
+		private fun ImagePanel.reapplyImage() = applyImage(image)
+
 		private fun ImagePanel.applyImage(ico: BufferedImage): ImagePanel {
 			sticksTo = SwingConstants.CENTER
 			val wrap = Icons.wrap(ico)
@@ -117,24 +132,32 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 		}
 
 		fun addImage(image: BufferedImage) {
-			panel.add(ImagePanel().applyImage(image), panel.componentCount.toString())
+			synchronized(panel.treeLock) {
+				panel.add(ImagePanel().applyImage(image), panel.componentCount.toString())
+			}
 			render()
 		}
 
 		fun delImage(index: Int) {
-			if (index < panel.componentCount)
-				panel.remove(index)
+			synchronized(panel.treeLock) {
+				if (index < panel.componentCount)
+					panel.remove(index)
+//				while (this.index >= index)
+//					this.index--
+			}
 			render()
 		}
 
 		fun setImage(index: Int, image: BufferedImage) {
-			if (index < 0)
-				throw IndexOutOfBoundsException("index $index out of bounds for len ${panel.componentCount}")
-			if (index >= panel.componentCount)
-				addImage(image)
-			else {
-				val img = panel.getComponent(index) as ImagePanel
-				img.applyImage(image)
+			synchronized(panel.treeLock) {
+				if (index < 0)
+					throw IndexOutOfBoundsException("index $index out of bounds for len ${panel.componentCount}")
+				if (index >= panel.componentCount)
+					addImage(image)
+				else {
+					val img = panel.getComponent(index) as ImagePanel
+					img.applyImage(image)
+				}
 			}
 			render()
 		}
@@ -190,7 +213,13 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 								anchor = GridBagConstraints.CENTER
 							}
 						}
-						images = ImageCarousel(forcedHeight = 350)
+						images = ImageCarousel(forcedHeight = INITIAL_HEIGHT)
+						images.addComponentListener(object : ComponentAdapter() {
+							override fun componentResized(e: ComponentEvent) {
+								images.forcedHeight = Math.floorDiv(e.component.size.height, 50) * 50 // round to lowest multiple of 50
+								images.render()
+							}
+						})
 						add(images)
 					}
 					cell {
@@ -230,8 +259,10 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 												}
 
 												onAction {
-													kt.editor.modified = true
-													editable = self.isSelected
+													isEnabled = false
+													self.isSelected = true
+//													kt.editor.modified = true
+//													editable = self.isSelected
 												}
 											}
 
@@ -241,7 +272,7 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 												}
 												onAction {
 													val k = card
-													if(k != null) {
+													if (k != null) {
 														k.setRenderOptsOverride(null)
 														populate(k.location.curriculum.defaultRenderOpts)
 														kt.editor.modified = true
@@ -292,7 +323,7 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 														label("Orientation:")
 														radioButton("X", false, orientation) {
 															attr {
-																actionCommand = DiagramCreator.X
+																actionCommand = DiagramOptions.X
 																horizontalTextPosition = SwingConstants.LEFT
 																addActionListener {
 																	kt.editor.modified = true
@@ -301,7 +332,7 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 														}
 														radioButton("Y", true, orientation) {
 															attr {
-																actionCommand = DiagramCreator.Y
+																actionCommand = DiagramOptions.Y
 																horizontalTextPosition = SwingConstants.LEFT
 																addActionListener {
 																	kt.editor.modified = true
@@ -355,10 +386,13 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 		editable = false
 	}
 
-	fun gather(): Int = DiagramCreator.createBitmask(200, drawFull.isSelected, wrapAfter.value as Int, orientation.selection.actionCommand)
+	val zoomFactor: Float
+		get() = images.forcedHeight / INITIAL_HEIGHT.toFloat()
+
+	fun gather(): Int = DiagramOptions.createBitmask(200, drawFull.isSelected, wrapAfter.value as Int, orientation.selection.actionCommand)
 
 	fun populate(renderOpts: Int) {
-		val diag = DiagramCreator.fromBitmask(renderOpts, null)
+		val diag = DiagramOptions.fromBitmask(renderOpts)
 
 		drawFull.isSelected = diag.drawFullKanji
 		wrapAfter.value = diag.wrapAt.toInt()
@@ -378,6 +412,7 @@ class Preview(private val kt: KanjiCardUIKt) : JPanel(BorderLayout()) {
 			images.setImage(0, imgs[0])
 			images.setImage(1, imgs[1])
 		}
+		images.render()
 		repaint()
 	}
 }

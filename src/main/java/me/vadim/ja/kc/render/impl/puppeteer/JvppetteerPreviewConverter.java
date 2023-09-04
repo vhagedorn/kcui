@@ -73,6 +73,7 @@ public class JvppetteerPreviewConverter implements PreviewConversionService {
 			PageSize ps = options.getSize().withUnit("px");
 			vp.setWidth((int) ps.width());
 			vp.setHeight((int) ps.height());
+			vp.setDeviceScaleFactor(options.getZoom());
 			page.setViewport(vp);
 
 			ScreenshotOptions ssOpts = new ScreenshotOptions();

@@ -86,6 +86,7 @@ public class JvppetteerPDFConverter implements PDFConversionService {
 			pdfOpts.setLandscape(options.isLandscape());
 			pdfOpts.setPreferCSSPageSize(false);
 			pdfOpts.setPath(tmp.getAbsolutePath());
+			pdfOpts.setScale(options.getZoom());
 
 			page.pdf(pdfOpts); // todo: this returns a byte array; no need for temp file
 			page.close();

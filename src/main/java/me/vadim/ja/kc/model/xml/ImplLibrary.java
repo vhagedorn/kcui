@@ -14,6 +14,7 @@ import me.vadim.ja.kc.model.wrapper.Library;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +112,7 @@ class ImplLibrary implements Library {
 
 	@Override
 	public void prune() {
-		for (Location key : cards.keySet()) {
+		for (Location key : new HashSet<>(cards.keySet())) {
 			Iterator<Card> iter = cards.get(key).iterator();
 			while (iter.hasNext())
 				if (iter.next() == null) {

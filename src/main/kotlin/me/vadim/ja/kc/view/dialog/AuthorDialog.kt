@@ -11,6 +11,7 @@ import io.github.mslxl.ktswing.onAction
 import me.vadim.ja.kc.JModalDialog
 import me.vadim.ja.kc.ui.KCTheme
 import me.vadim.ja.kc.KanjiCardUIKt
+import me.vadim.ja.kc.hintField
 import me.vadim.ja.kc.model.wrapper.Library
 import me.vadim.ja.kc.util.Util
 import me.vadim.ja.swing.HintTextField
@@ -30,29 +31,6 @@ import kotlin.contracts.contract
 class AuthorDialog(private val library: Library, private val kt: KanjiCardUIKt) : JModalDialog(kt.frame) {
 
 	override val minSize = Dimension(200, 125)
-
-	@OptIn(ExperimentalContracts::class)
-	private inline fun CanAddChildrenScope<*>.hintField(
-		hint: String? = null,
-		block: BasicScope<JTextField>.() -> Unit
-													   ): HintTextField {
-		contract {
-			callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-		}
-		return applyContainer(
-			HintTextField(hint)
-				.apply {
-					addKeyListener(object : KeyAdapter() {
-						override fun keyReleased(e: KeyEvent) {
-							if (e.isControlDown && e.keyCode == KeyEvent.VK_A) {
-								this@apply.selectAll()
-								e.consume()
-							}
-						}
-					})
-				}, block
-							 ) as HintTextField
-	}
 
 	private lateinit var name: HintTextField
 

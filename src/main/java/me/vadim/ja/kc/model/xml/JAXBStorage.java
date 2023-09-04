@@ -5,12 +5,16 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
+import me.vadim.ja.kc.KanjiCardUI;
+import me.vadim.ja.kc.model.Preferences;
 import me.vadim.ja.kc.model.wrapper.Card;
 import me.vadim.ja.kc.model.wrapper.Library;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author vadim
@@ -65,14 +69,12 @@ public final class JAXBStorage {
 				JAXBContext  context = JAXBContext.newInstance(ImplCard.class);
 				Unmarshaller umar    = context.createUnmarshaller();
 
-				return (Card) umar.unmarshal(new FileReader(file));
+				return (Card) umar.unmarshal(new FileReader(file, StandardCharsets.UTF_8));
 			}
-		} catch (JAXBException e) {
+		} catch (JAXBException | IOException e) {
 			System.err.println("Problem reading card: " + file);
 			e.printStackTrace();
-			// todo: static UI error message queue
-		} catch (FileNotFoundException ignored) {
-			// never thrown
+			KanjiCardUI.postError("Problem reading card at " + file);
 		}
 		return null;
 	}
@@ -86,11 +88,11 @@ public final class JAXBStorage {
 			Marshaller  mar     = context.createMarshaller();
 
 			mar.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-			mar.marshal(card, file);
-		} catch (JAXBException e) {
+			mar.marshal(card, new FileWriter(file, StandardCharsets.UTF_8));
+		} catch (JAXBException | IOException e) {
 			System.err.println("Problem dumping card: " + card.hash());
 			e.printStackTrace();
-			// todo: static UI error message queue
+			KanjiCardUI.postError("Problem saving card " + card);
 		}
 	}
 
@@ -100,14 +102,12 @@ public final class JAXBStorage {
 				JAXBContext  context = JAXBContext.newInstance(ImplLibrary.class, ImplCard.class);
 				Unmarshaller umar    = context.createUnmarshaller();
 
-				return (Library) umar.unmarshal(new FileReader(libfile));
+				return (Library) umar.unmarshal(new FileReader(libfile, StandardCharsets.UTF_8));
 			}
-		} catch (JAXBException e) {
+		} catch (JAXBException | IOException e) {
 			System.err.println("Problem reading library at " + libfile);
 			e.printStackTrace();
-			// todo: static UI error message queue
-		} catch (FileNotFoundException ignored) {
-			// never thrown
+			KanjiCardUI.postError("Problem opening library " + libfile);
 		}
 		return null;
 	}
@@ -120,12 +120,46 @@ public final class JAXBStorage {
 			Marshaller  mar     = context.createMarshaller();
 
 			mar.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-			mar.marshal(library, libfile);
-		} catch (JAXBException e) {
+			mar.marshal(library, new FileWriter(libfile, StandardCharsets.UTF_8));
+		} catch (JAXBException | IOException e) {
 			System.err.println("Problem dumping library to " + libfile);
 			e.printStackTrace();
-			// todo: static UI error message queue
+			KanjiCardUI.postError("Problem saving library to " + libfile);
 		}
 	}
+
+	public static Preferences readPref(File file) {
+		try {
+			if (file.isFile()) {
+				JAXBContext  context = JAXBContext.newInstance(Preferences.class);
+				Unmarshaller umar    = context.createUnmarshaller();
+
+				return (Preferences) umar.unmarshal(new FileReader(file, StandardCharsets.UTF_8));
+			}
+		} catch (JAXBException | IOException e) {
+			System.err.println("Problem reading preferences at " + file);
+			e.printStackTrace();
+			KanjiCardUI.postError("Problem opening preferences " + file);
+		}
+		return null;
+	}
+
+	public static void dumpPref(Preferences pref, File file) {
+		try {
+			file.getParentFile().mkdirs();
+
+			JAXBContext context = JAXBContext.newInstance(Preferences.class);
+			Marshaller  mar     = context.createMarshaller();
+
+			mar.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			mar.marshal(pref, new FileWriter(file, StandardCharsets.UTF_8));
+		} catch (JAXBException | IOException e) {
+			System.err.println("Problem dumping library to " + file);
+			e.printStackTrace();
+			KanjiCardUI.postError("Problem saving library to " + file);
+		}
+	}
+
+
 
 }

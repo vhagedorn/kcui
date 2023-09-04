@@ -1,13 +1,22 @@
 package me.vadim.ja.kc
 
+import io.github.mslxl.ktswing.BasicScope
 import io.github.mslxl.ktswing.CanAddChildrenScope
 import io.github.mslxl.ktswing.attr
+import io.github.mslxl.ktswing.component.applyContainer
 import io.github.mslxl.ktswing.layout.GridBagLayoutCellScope
 import io.github.mslxl.ktswing.layout.GridBagLayoutRootScope
+import me.vadim.ja.swing.HintTextField
 import java.awt.GridBagConstraints
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.lang.UnsupportedOperationException
 import javax.swing.JFrame
 import javax.swing.JPanel
+import javax.swing.JTextField
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
@@ -53,3 +62,26 @@ fun <T> GridBagLayoutRootScope<*>.resizableInputList(
 	label: String,
 	eachRow: CanAddChildrenScope<*>.(x: T?) -> Unit
 													) = ResizableInputList(this, frame, label, eachRow)
+
+@OptIn(ExperimentalContracts::class)
+inline fun CanAddChildrenScope<*>.hintField(
+	hint: String? = null,
+	block: BasicScope<JTextField>.() -> Unit
+												   ): HintTextField {
+	contract {
+		callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+	}
+	return applyContainer(
+		HintTextField(hint)
+			.apply {
+				addKeyListener(object : KeyAdapter() {
+					override fun keyReleased(e: KeyEvent) {
+						if (e.isControlDown && e.keyCode == KeyEvent.VK_A) {
+							this@apply.selectAll()
+							e.consume()
+						}
+					}
+				})
+			}, block
+						 ) as HintTextField
+}

@@ -9,6 +9,7 @@ import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.borderLayout
 import io.github.mslxl.ktswing.layout.flowLayout
 import me.vadim.ja.kc.KanjiCardUIKt
+import me.vadim.ja.kc.model.PartOfSpeech
 import me.vadim.ja.kc.model.xml.KCFactory
 import me.vadim.ja.kc.model.wrapper.Card
 import me.vadim.ja.kc.model.wrapper.Curriculum
@@ -21,13 +22,11 @@ import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Toolkit
 import java.awt.event.*
+import java.util.Objects
 import javax.swing.*
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeWillExpandListener
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.DefaultTreeModel
-import javax.swing.tree.ExpandVetoException
-import javax.swing.tree.TreePath
+import javax.swing.tree.*
 
 // todo: locate ungrouped (or invalidly grouped, or detached) cards, and put them in a special curriculum (or group)
 
@@ -205,6 +204,8 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 
 	private companion object {
 
+		private val NATTY = NaturalOrderComparator()
+
 		private val PLACEHOLDER_CURRICULUM = KCFactory.newLibrary("").getCurriculum("New...")
 
 		/* Del or CMD+Delete (delete==backspace on MacOS)*/
@@ -221,6 +222,7 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 		get() = (tree.selectionPath?.lastPathComponent as DefaultMutableTreeNode?)?.userObject
 
 	private var initd = false // hacky hack hack
+
 	init {
 		ctx = Ctx(this, new = { // right click -> context menu -> action
 			createAction(selectedObject ?: return@Ctx)
@@ -290,7 +292,7 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 										if (selectedItem === PLACEHOLDER_CURRICULUM)
 											selectedItem = null
 										addActionListener {
-											if(!initd) return@addActionListener // hacky hack hack
+											if (!initd) return@addActionListener // hacky hack hack
 											var selected = self.selectedItem as Curriculum? ?: return@addActionListener
 											if (selected === PLACEHOLDER_CURRICULUM) {
 												val name = JOptionPane.showInputDialog(
@@ -321,6 +323,10 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 		initd = true // hacky hack hack
 	}
 
+	fun MutableTreeNode.insert(child: MutableTreeNode) = (tree.model as DefaultTreeModel).insertNodeInto(child, this, childCount)
+
+	fun MutableTreeNode.delete() = (tree.model as DefaultTreeModel).removeNodeFromParent(this)
+
 	fun repopulate() {
 		populate(curriculumSelector.selectedItem as Curriculum?)
 	}
@@ -330,6 +336,7 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 		if (root !is SimpleTreeNode || root.userObject != curriculum) { // clear & repopulate
 			root = SimpleTreeNode(curriculum, NaturalOrderComparator())
 			tree.model = DefaultTreeModel(root)
+			println("[tree] <-> curriculum $curriculum")
 		}
 
 		if (curriculum != null) {
@@ -338,20 +345,41 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 			for (node in Util.getChildren(root)) { // iterate over existing groups
 				val obj = node.userObject
 				if (obj is Card) // clear & readd
-					node.removeFromParent()
+					node.delete()
 				if (obj is Group) {
 					if (groups.remove(obj)) // group is not new
 						for (card in kt.ctx.activeLibrary.getCards(obj)) // readd cards (group node should preserve expansion state)
-							node.add(SimpleTreeNode(card))
+							node.insert(SimpleTreeNode(card))
 					else // group has been deleted
-						node.removeFromParent()
+						node.delete()
 				}
 			}
 			for (group in groups) { // add new groups
-				val node = SimpleTreeNode(group, NaturalOrderComparator())
+				println("[tree] + group $group")
+				val node = SimpleTreeNode(group) { node1, node2 -> // custom sort
+					if(node1 !is DefaultMutableTreeNode || node2 !is DefaultMutableTreeNode)
+						return@SimpleTreeNode NATTY.compare(node1, node2)
+
+					val a = node1.userObject
+					val b = node2.userObject
+					if (a !is Card || b !is Card)
+						return@SimpleTreeNode NATTY.compare(a, b)
+
+					fun ord(o: Card) = PartOfSpeech.fromLinguistic(o.grammar?.firstOrNull())?.ordinal ?: 0
+					fun ver(o: Card) = PartOfSpeech.variantFromLinguistic(o.grammar?.firstOrNull())
+
+					var comp = Integer.compare(ord(a), ord(b))
+					if (comp == 0)
+						comp = Integer.compare(ver(a), ver(b))
+					if (comp == 0)
+						comp = NATTY.compare(a.english?.firstOrNull(), b.english?.firstOrNull())
+					if (comp == 0)
+						comp = NATTY.compare(a.japanese?.firstOrNull(), b.japanese?.firstOrNull())
+					comp
+				}
 				for (card in kt.ctx.activeLibrary.getCards(group))
-					node.add(SimpleTreeNode(card))
-				root.add(node)
+					node.insert(SimpleTreeNode(card))
+				root.insert(node)
 			}
 		}
 
@@ -369,7 +397,8 @@ class CurriculumExplorer(private val kt: KanjiCardUIKt) : JPanel(BorderLayout())
 			}
 		}
 
+		root.sort()
 		tree.expandPath(TreePath(root.path))
-		revalidate()
+		repaint()
 	}
 }

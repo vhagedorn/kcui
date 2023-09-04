@@ -10,6 +10,7 @@ import org.jsoup.nodes.Element;
 //todo: catch IllegalStateExceptions and show popup dialog
 
 /**
+ * HTML Document generator.
  * @author vadim
  */
 public class Generator {

@@ -1,3 +1,4 @@
+//@formatter:off
 /*
  NaturalOrderComparator.java -- Perform 'natural order' comparisons of strings in Java.
  Copyright (C) 2003 by Pierre-Luc Paour <natorder@paour.com>

@@ -18,14 +18,17 @@ import me.vadim.ja.kc.model.xml.Location
 import me.vadim.ja.kc.model.wrapper.Card
 import me.vadim.ja.kc.model.wrapper.Curriculum
 import me.vadim.ja.kc.model.wrapper.Group
+import me.vadim.ja.kc.render.impl.factory.PDFUtil
 import me.vadim.ja.kc.ui.KCIcon
 import me.vadim.ja.kc.ui.KCTheme
+import me.vadim.ja.kc.util.Util
 import me.vadim.ja.swing.SortedComboBoxModel
 import java.awt.*
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.io.File
 import javax.swing.*
 import javax.swing.border.TitledBorder
 import javax.swing.text.Document
@@ -225,7 +228,7 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 										addFocusListener(object : FocusAdapter() {
 											override fun focusLost(e: FocusEvent?) {
 												if (needsCaching) {
-													kt.ctx.cacheImgs(gather())
+													kt.ctx.renderContext.createPreview(gather())
 													needsCaching = false
 												}
 											}
@@ -325,7 +328,17 @@ class Editor(private val kt: KanjiCardUIKt) : JPanel() {
 								}
 								button("Export") {
 									onAction {
-										kt.ctx.submitAsync(gather(), kt.preview.gather())
+										kt.ctx.renderContext.createExport(gather()).splitFrontAndBack(false).result.thenAccept {
+											var file = File("card.pdf")
+											var i = 1
+											while(file.exists())
+												file = File("card (${i++}).pdf")
+
+											for (docu in it)
+												docu.save(file) // todo: file chooser ?
+											Util.launch(file)
+											PDFUtil.closeSafely(*it)
+										}
 									}
 								}
 								button("Preview") {

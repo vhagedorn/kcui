@@ -4,6 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/**
+ * Display a {@link BufferedImage} inside a {@link JPanel}, configuring the alignment of the image.
+ * @author vadim
+ */
 public class ImagePanel extends JPanel implements SwingConstants {
 
 	private BufferedImage image;

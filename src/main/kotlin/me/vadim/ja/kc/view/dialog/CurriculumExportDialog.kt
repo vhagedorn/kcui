@@ -1,29 +1,25 @@
 package me.vadim.ja.kc.view.dialog
 
-import io.github.mslxl.ktswing.component.button
-import io.github.mslxl.ktswing.component.label
-import io.github.mslxl.ktswing.component.panel
-import io.github.mslxl.ktswing.component.scrollPane
+import io.github.mslxl.ktswing.attr
+import io.github.mslxl.ktswing.component.*
 import io.github.mslxl.ktswing.group.swing
 import io.github.mslxl.ktswing.layout.borderLayout
+import io.github.mslxl.ktswing.layout.gridBagLayout
 import io.github.mslxl.ktswing.onAction
 import me.vadim.ja.kc.JModalDialog
+import me.vadim.ja.kc.KanjiCardUI
 import me.vadim.ja.kc.KanjiCardUIKt
-import me.vadim.ja.kc.model.wrapper.Card
 import me.vadim.ja.kc.model.wrapper.Curriculum
 import me.vadim.ja.kc.model.wrapper.Group
 import me.vadim.ja.kc.render.impl.factory.PDFUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.GridBagConstraints
 import java.io.File
-import java.util.function.Function
-import java.util.stream.Collectors
-import java.util.stream.Stream
-import javax.swing.JFileChooser
-import javax.swing.JOptionPane
-import javax.swing.JPanel
-import javax.swing.JProgressBar
-import javax.swing.JTable
+import java.text.SimpleDateFormat
+import java.util.*
+import javax.swing.*
+import javax.swing.border.TitledBorder
 import javax.swing.table.DefaultTableModel
 
 
@@ -33,6 +29,7 @@ import javax.swing.table.DefaultTableModel
 class CurriculumExportDialog(private val curriculum: Curriculum, private val kt: KanjiCardUIKt) : JModalDialog(kt.frame) {
 
 	private val table: JTable
+	private lateinit var split: JCheckBox
 
 	override val minSize = Dimension(350, 350)
 
@@ -57,11 +54,42 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 					}
 				borderLayout {
 					top {
-						label("Choose groups from $curriculum to export.")
+						panel {
+							attr {
+								border = TitledBorder("Export Options").apply {
+									titleJustification = TitledBorder.CENTER
+								}
+							}
+							gridBagLayout {
+								cell {
+									attr {
+										cons {
+											anchor = GridBagConstraints.WEST
+											gridx = 0
+											gridy = 1
+											weightx = 1.0
+											weighty = 1.0
+											fill = GridBagConstraints.HORIZONTAL
+										}
+									}
+									split = checkBox("Split front/back")
+									split.isSelected = true
+								}
+							}
+						}
 					}
 					center {
-						scrollPane {
-							add(table)
+						panel {
+							borderLayout {
+								top {
+									label("Choose groups from $curriculum to export.")
+								}
+								center {
+									scrollPane {
+										add(table)
+									}
+								}
+							}
 						}
 					}
 					bottom {
@@ -71,12 +99,13 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 								for (i in 0 until table.rowCount)
 									if (table.getValueAt(i, 1) == true)
 										groups.add(table.getValueAt(i, 0) as Group)
-								val cards = groups.flatMap { kt.ctx.activeLibrary.getCards(it) }.toList()
+
+								val job = kt.ctx.renderContext.createExport(groups).orderByGroups()
 
 								val pb = object : JModalDialog(this@CurriculumExportDialog) {
 									override val minSize = Dimension(250, 20)
 
-									val progress = JProgressBar(0, 4) // see comment on export method
+									val progress = JProgressBar(1, job.expectedUpdatePollCount)
 
 									init {
 										layout = BorderLayout()
@@ -88,29 +117,42 @@ class CurriculumExportDialog(private val curriculum: Curriculum, private val kt:
 									}
 								}
 								pb.display()
-								kt.ctx.export(cards, kt.preview.gather()) {
-									synchronized(pb) {
+
+								job.sendProgressUpdates {
+									SwingUtilities.invokeLater {
 										pb.progress.value++
 									}
-								}.thenAccept {
+								}
+
+								val dual = split.isSelected
+								job.splitFrontAndBack(dual).result.thenAccept {
 									pb.dispose()
 
-									if(it != null) {
-										val fc = JFileChooser(".")
-										fc.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-										val resp = fc.showSaveDialog(this@CurriculumExportDialog)
+									try {
+										if (it != null) {
+											val fc = JFileChooser(".")
+											fc.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+											val resp = fc.showSaveDialog(this@CurriculumExportDialog)
 
-										val names = arrayOf("front", "back")
-										if (resp == JFileChooser.APPROVE_OPTION)
-											for (i in it.indices)
-												it[i].save(File(fc.selectedFile, "$curriculum-${names[i]}.pdf"))
-
+											val date = SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().time)
+											val names = if (dual) arrayOf("front", "back") else arrayOf("all")
+											if (resp == JFileChooser.APPROVE_OPTION)
+												for (i in it.indices)
+													it[i].save(File(fc.selectedFile, "export_${date}_${curriculum}-${names[i]}.pdf"))
+										} else
+											KanjiCardUI.postError("(1) There was an error while exporting!")
+									} catch (e: Exception) {
+										e.printStackTrace()
+										KanjiCardUI.postError("(2) There was an error while exporting!", e)
+									} finally {
 										PDFUtil.closeSafely(*it)
-									} else {
-										JOptionPane.showMessageDialog(this@CurriculumExportDialog, "There was an error while exporting!", "Export Error", JOptionPane.ERROR_MESSAGE)
 									}
 
 									dispose()
+								}.exceptionally {
+									KanjiCardUI.postError("(3) There was an error while exporting!", it)
+									it.printStackTrace()
+									null
 								}
 							}
 						}

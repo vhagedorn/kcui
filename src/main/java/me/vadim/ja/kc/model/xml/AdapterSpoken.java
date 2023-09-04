@@ -13,12 +13,12 @@ class AdapterSpoken extends XmlAdapter<String, ElementSpoken> {
 		if (v == null || v.isBlank())
 			throw new IllegalArgumentException(v == null ? null : "(empty)");
 
-		return new ElementSpoken(v.substring(1), PronounciationType.fromID(Integer.parseInt(String.valueOf(v.charAt(0)))));
+		return new ElementSpoken(v.substring(1), PronounciationType.values()[Integer.parseInt(String.valueOf(v.charAt(0)))]);
 	}
 
 	@Override
 	public String marshal(ElementSpoken v) throws Exception {
-		return v.toString();
+		return v.type.ordinal() + v.toString();
 	}
 
 }

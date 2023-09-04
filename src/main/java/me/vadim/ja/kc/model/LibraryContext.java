@@ -6,11 +6,7 @@ import me.vadim.ja.kc.model.wrapper.Curriculum;
 import me.vadim.ja.kc.model.wrapper.Group;
 import me.vadim.ja.kc.model.wrapper.Library;
 import me.vadim.ja.kc.model.xml.Location;
-import org.apache.pdfbox.pdmodel.PDDocument;
-
-import java.awt.image.BufferedImage;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import me.vadim.ja.kc.render.impl.ctx.RenderContext;
 
 /**
  * @author vadim
@@ -19,20 +15,13 @@ public interface LibraryContext {
 
 	Library getActiveLibrary();
 
-	void cacheImgs(Card kanji);
+	Preferences getPreferences();
 
-	void submit(Card kanji, int renderOpts);
-
-	void submitAsync(Card kanji, int renderOpts);
-
-	// update will be triggered exactly 4 times
-	CompletableFuture<PDDocument[]> export(List<Card> cards, int renderOpts, Runnable update);
-
-	CompletableFuture<BufferedImage[]> generatePreview(Card kanji, int renderOpts);
-
-	BufferedImage[] preview(Card kanji, int renderOpts);
+	RenderContext getRenderContext();
 
 	void save(Card kanji);
+
+	void savePreferences();
 
 	void saveLibrary(boolean quiet);
 

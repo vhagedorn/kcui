@@ -8,6 +8,7 @@ import me.vadim.ja.kc.render.impl.factory.Generator;
 import me.vadim.ja.kc.ui.KCIcon;
 import me.vadim.ja.kc.util.Util;
 import me.vadim.ja.kc.util.threading.LocalExecutors;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,14 +48,25 @@ public class KanjiCardUI extends Application {
 															.build());
 	}
 
+	public static void postError(String message) {
+		postError(message, null);
+	}
+
+	public static void postError(String message, @Nullable Throwable t) {
+		String msg = message;
+		if(t != null)
+			msg += String.format("\n[%s: %s]", t.getClass().getSimpleName(), t.getMessage());
+		JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
+	}
+
 	@SuppressWarnings("FieldCanBeLocal")
 	private final TextResource
 			version, license_txt, templates_md,
 			license_html, back_html, front_html,
 			printing_css;
-	private final KanjiCardUIKt kt = new KanjiCardUIKt(this);
+	private final KanjiCardUIKt kt;
 
-	private class TextResource {
+	private static class TextResource {
 
 		final String fname, rname;
 		byte[] buf;
@@ -105,7 +117,7 @@ public class KanjiCardUI extends Application {
 	public KanjiCardUI() throws IOException {
 		{
 			version = new TextResource("version");
-			kt.setVersion(version.asString());
+			version.load();
 
 			license_txt = new TextResource("LICENSE.txt");
 			license_txt.copyReplace();
@@ -114,7 +126,7 @@ public class KanjiCardUI extends Application {
 			templates_md.copyReplace();
 
 			license_html = new TextResource("LICENSE.html");
-			kt.setLicense(license_html.asString());
+			license_html.load();
 
 			back_html = new TextResource("doc/back.html", "template/back_side_card.html");
 			back_html.copyOrLoad();
@@ -141,6 +153,10 @@ public class KanjiCardUI extends Application {
 		System.out.println("\tby Vadim Hagedorn");
 		System.out.println();
 
+//		kt = null;
+		kt = new KanjiCardUIKt(this);
+		kt.setVersion(version.asString());
+		kt.setLicense(license_html.asString());
 		setup();
 	}
 
