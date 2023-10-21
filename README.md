@@ -2,8 +2,6 @@
 temporary name 
 
 # Cool things to check out 
-(it's worth importing into intellij to ctrl+click & optionally run)
-
 - [ExportJob#getResult](https://github.com/vhagedorn/kcui/blob/8291af0a022fc3da3ae22bdff987c5d839322775/src/main/java/me/vadim/ja/kc/render/impl/ctx/ExportJob.java#L68) -- multithreading solution
 - [KCIcon](https://github.com/vhagedorn/kcui/blob/8291af0a022fc3da3ae22bdff987c5d839322775/src/main/java/me/vadim/ja/kc/ui/KCIcon.java#L15) -- enum usage (my fav Java feature)
 - [psvm](https://github.com/vhagedorn/kcui/blob/8291af0a022fc3da3ae22bdff987c5d839322775/src/main/java/me/vadim/ja/Main.java#L10) -- my attempt at abstracting app & impl
