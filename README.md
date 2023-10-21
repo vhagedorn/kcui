@@ -7,6 +7,7 @@ temporary name
 - [psvm](https://github.com/vhagedorn/kcui/blob/8291af0a022fc3da3ae22bdff987c5d839322775/src/main/java/me/vadim/ja/Main.java#L10) -- my attempt at abstracting app & impl
 - [InMemoryFileServer](https://github.com/vhagedorn/kcui/blob/8291af0a022fc3da3ae22bdff987c5d839322775/src/main/java/me/vadim/ja/kc/render/InMemoryFileServer.java#L24) -- http server layer
 - [back.html](https://github.com/vhagedorn/kcui/blob/31f27f6c757abf488a0c51278eaf1e310cf71ae5/src/main/resources/doc/back.html#L68) -- relevant CSS snippet
+- [ResizableInputList](https://github.com/vhagedorn/kcui/blob/master/src/main/kotlin/me/vadim/ja/kc/ResizableInputList.kt) -- some Swing DSL in action (this thing is implemented by the "Definitions" section)
 
 # screenshots
 
